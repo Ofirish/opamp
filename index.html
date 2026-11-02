@@ -1,0 +1,1049 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>מגבר שרת אידיאלי</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Secular+One&display=swap">
+<style>
+/* Concept: a lab-bench datasheet. Light/dark paper, a black chip body, and always-dark oscilloscope screens. */
+:root{
+  --bg:#EDF0EE; --panel:#FBFCFB; --panel2:#E4EAE6; --ink:#13201B; --muted:#51625A; --line:#C6D1CA;
+  --accent:#0C7048; --accent-ink:#FFFFFF; --accent-soft:#D5EBDF;
+  --sig-in:#1F63B5; --sig-out:#B86500; --sig-fb:#B02A6A; --pwr:#B9382B; --trim:#6D43B5; --nc:#7C8983;
+  --chip:#1A2420; --chip-ink:#E8F1EC; --warn:#A35A00; --bad:#B0281C; --good:#0C7048;
+  --display:"Secular One","Heebo",system-ui,sans-serif; --body:"Heebo",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0C1411; --panel:#131E19; --panel2:#1B2B24; --ink:#DCEAE3; --muted:#92A89E; --line:#27382F;
+  --accent:#4FD18B; --accent-ink:#06150D; --accent-soft:#17382A;
+  --sig-in:#6CB0FF; --sig-out:#FFB84D; --sig-fb:#FF7DB8; --pwr:#FF7A6B; --trim:#B79BFF; --nc:#8B9A93;
+  --chip:#070B09; --chip-ink:#E8F1EC; --warn:#FFB84D; --bad:#FF7A6B; --good:#4FD18B; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0C1411; --panel:#131E19; --panel2:#1B2B24; --ink:#DCEAE3; --muted:#92A89E; --line:#27382F;
+  --accent:#4FD18B; --accent-ink:#06150D; --accent-soft:#17382A;
+  --sig-in:#6CB0FF; --sig-out:#FFB84D; --sig-fb:#FF7DB8; --pwr:#FF7A6B; --trim:#B79BFF; --nc:#8B9A93;
+  --chip:#070B09; --chip-ink:#E8F1EC; --warn:#FFB84D; --bad:#FF7A6B; --good:#4FD18B; color-scheme:dark; }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.7;
+  padding-block:0 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:1060px;margin:0 auto}
+h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:clamp(2rem,6vw,3.1rem);line-height:1.1}
+h2{font-size:clamp(1.45rem,3.6vw,1.9rem);line-height:1.25;margin:34px 0 10px}
+h3{font-size:1.1rem;margin:22px 0 6px;font-weight:700}
+h4{font-size:.78rem;letter-spacing:.06em;color:var(--muted);margin:14px 0 2px;font-weight:700}
+p{margin:0 0 12px;max-width:68ch}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);direction:ltr;unicode-bidi:isolate;font-size:.92em}
+.num{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eq{display:block;direction:ltr;text-align:center;font-family:var(--mono);font-size:1.05rem;background:var(--panel2);border-radius:8px;padding:10px 12px;margin:10px 0;overflow-x:auto}
+.hero{padding-block:26px 14px}
+.hero-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{width:92px;height:auto;flex:none}
+.kicker{font-family:var(--mono);direction:ltr;text-align:right;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 4px}
+.lead{margin-top:14px;font-size:1.06rem}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:8px 0;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.tabs button{flex:none;font:inherit;font-weight:500;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:8px 14px;cursor:pointer}
+.tabs button:hover{background:var(--panel2)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:16px 0}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+@media(max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+.rule{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.rule b{color:var(--accent)}
+.mini{background:var(--panel2);border-radius:10px;padding:12px 14px;min-width:0}
+.mini h3{margin-top:0}
+.mini p{margin-bottom:6px;font-size:.95rem}
+label{font-size:.92rem;font-weight:500}
+select,input[type="number"]{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px;max-width:100%}
+input[type="range"]{width:100%;accent-color:var(--accent)}
+.ctl{display:grid;gap:2px;margin-bottom:10px}
+.ctl .row{display:flex;justify-content:space-between;gap:10px}
+.ctl output{font-family:var(--mono);direction:ltr;font-size:.9rem;color:var(--accent);font-weight:600}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.seg button{font:inherit;font-size:.92rem;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn{font:inherit;font-size:.92rem;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.stack{width:100%;border-collapse:collapse}
+.stack th{font-size:.78rem;letter-spacing:.05em;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:2px solid var(--line)}
+.stack td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.95rem}
+.stack td.p{font-weight:700;white-space:nowrap}
+.stack td.p small{display:block;font-weight:400;color:var(--muted);font-family:var(--mono);direction:ltr;text-align:right}
+@media(max-width:700px){
+  .stack,.stack tbody,.stack tr,.stack td{display:block}
+  .stack thead{display:none}
+  .stack tr{border-bottom:2px solid var(--line);padding:8px 0}
+  .stack td{border:0;padding:3px 0}
+  .stack td::before{content:attr(data-l);display:block;font-size:.72rem;letter-spacing:.05em;color:var(--muted)}
+  .stack td.p{white-space:normal}
+}
+.scope{display:block;width:100%;height:260px;border-radius:10px;background:#0A1411;border:1px solid #223229}
+.scope.tall{height:300px}
+.reads{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.reads div{background:var(--panel2);border-radius:8px;padding:8px 12px;min-width:0}
+.reads small{display:block;color:var(--muted);font-size:.74rem;letter-spacing:.04em}
+.reads b{font-family:var(--mono);direction:ltr;unicode-bidi:isolate;display:block;font-size:1.05rem;font-weight:600;text-align:right;overflow-wrap:anywhere}
+.insight{background:var(--accent-soft);border-radius:8px;padding:10px 14px;margin:10px 0 0;max-width:none}
+.ok{color:var(--good)} .warnc{color:var(--warn)} .badc{color:var(--bad)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;margin:6px 0 10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
+.chip-svg{width:100%;max-width:380px;height:auto;display:block;margin:0 auto;direction:ltr}
+.pin{cursor:pointer}
+.pin rect.pb{stroke:var(--ink);stroke-width:1.2}
+.pin:focus-visible{outline:none}
+.pin:focus-visible rect.pb,.pin.sel rect.pb{stroke:var(--accent);stroke-width:3.2}
+.pin text{font-family:var(--mono);font-size:12px}
+.pin .pnum{fill:var(--ink);font-weight:600}
+.pin .pname{fill:var(--chip-ink);font-size:11px}
+.pin.sel .pname{fill:var(--accent);font-weight:700}
+.pin:hover rect.pb{stroke-width:2.6}
+.pin-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.pn{width:40px;height:40px;border-radius:8px;background:var(--chip);color:var(--chip-ink);display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:1.2rem;flex:none}
+.pin-head .en{font-family:var(--mono);font-weight:600;direction:ltr;text-align:right}
+.pin-head .he{color:var(--muted);font-size:.92rem}
+.tag{font-size:.78rem;font-weight:700;border-radius:99px;padding:2px 10px;color:#fff;margin-inline-start:auto}
+.sym{width:170px;height:auto;direction:ltr;flex:none}
+.sym line,.sym path,.sym polygon{stroke:var(--ink);stroke-width:2;fill:none}
+.sym polygon{fill:var(--panel)}
+.sym text{fill:var(--ink);font:600 11px var(--mono)}
+.sym g.on line{stroke:var(--accent);stroke-width:4}
+.sym g.on text{fill:var(--accent)}
+.sch{width:100%;max-width:470px;height:auto;display:block;direction:ltr}
+.sch .sw{stroke:var(--ink);stroke-width:1.7;fill:none;stroke-linejoin:round}
+.sch .fbw{stroke:var(--sig-fb);stroke-width:2.2;fill:none;stroke-linejoin:round}
+.sch .rb{fill:var(--panel);stroke:var(--ink);stroke-width:1.7}
+.sch .rbf{fill:var(--panel);stroke:var(--sig-fb);stroke-width:1.9}
+.sch .dot{fill:var(--ink)}
+.sch .dotf{fill:var(--sig-fb)}
+.sch .tx{fill:var(--ink);font:12px var(--mono)}
+.sch .txf{fill:var(--sig-fb);font:12px var(--mono);font-weight:600}
+.sch .txs{fill:var(--muted);font:11px var(--mono)}
+.sch .amp{fill:var(--panel);stroke:var(--ink);stroke-width:2}
+.sch .in{fill:var(--sig-in);font:12px var(--mono);font-weight:600}
+.sch .out{fill:var(--sig-out);font:12px var(--mono);font-weight:600}
+.cap{font-size:.88rem;color:var(--muted);margin-top:6px}
+.bars{display:grid;gap:8px;margin:10px 0}
+.bar{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) 56px;gap:10px;align-items:center;font-size:.9rem}
+.bar .tr{background:var(--panel2);border-radius:5px;height:14px;overflow:hidden}
+.bar .fi{height:100%;background:var(--accent);border-radius:5px;min-width:2px}
+.bar span:last-child{font-family:var(--mono);direction:ltr;text-align:left;font-size:.85rem}
+@media(max-width:520px){.bar{grid-template-columns:minmax(0,1fr) 52px}.bar .tr{grid-column:1/-1;order:3}}
+.gl dt{font-weight:700;margin-top:14px;color:var(--accent)}
+.gl dt small{font-family:var(--mono);color:var(--muted);font-weight:400;direction:ltr;unicode-bidi:isolate;margin-inline-start:8px}
+.gl dd{margin:2px 0 0;max-width:68ch}
+.search{width:100%;max-width:420px}
+details{border-bottom:1px solid var(--line);padding:8px 0}
+summary{cursor:pointer;font-weight:700}
+details p,details ul{margin-top:8px}
+ul.tight{margin:6px 0 12px;padding-inline-start:20px;max-width:68ch}
+ul.tight li{margin-bottom:5px}
+.note{font-size:.88rem;color:var(--muted)}
+.nv{display:inline-flex;align-items:center;gap:5px;direction:ltr}
+.nv input{width:7.2em;text-align:right;font-family:var(--mono);font-size:.9rem;padding:4px 8px}
+.nv .u{font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+.ctl .row{align-items:center}
+.fx{background:var(--panel2);border-radius:10px;padding:12px 14px;margin:12px 0;display:grid;gap:7px;min-width:0}
+.fx h4{margin:0 0 2px}
+.fx .l{direction:ltr;text-align:left;font-family:var(--mono);font-size:.88rem;line-height:1.55;overflow-wrap:anywhere;unicode-bidi:isolate}
+.fx .l .r{color:var(--accent);font-weight:600}
+.fx .l .s{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<div id="app" class="wrap" dir="rtl" lang="he">
+<header class="hero">
+  <div class="hero-row">
+    <svg class="logo" viewBox="0 0 120 90" aria-hidden="true">
+      <polygon points="30,8 30,82 96,45" fill="var(--panel)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
+      <line x1="4" y1="28" x2="30" y2="28" stroke="var(--ink)" stroke-width="3"/><line x1="4" y1="62" x2="30" y2="62" stroke="var(--ink)" stroke-width="3"/>
+      <line x1="96" y1="45" x2="118" y2="45" stroke="var(--accent)" stroke-width="4"/>
+      <text x="36" y="33" font-family="IBM Plex Mono,monospace" font-size="16" font-weight="700" fill="var(--ink)">−</text>
+      <text x="36" y="67" font-family="IBM Plex Mono,monospace" font-size="16" font-weight="700" fill="var(--ink)">+</text>
+    </svg>
+    <div><p class="kicker">Operational Amplifier · DIP</p><h1>מגבר שרת אידיאלי</h1></div>
+  </div>
+  <p class="lead">מגבר שרת הוא התרגום העברי של Operational Amplifier, או בקיצור op-amp. כאן לומדים על המגבר האידיאלי, על כל הפינים והכניסות של רכיב בחבילת DIP, ועל שתי הבעיות המעשיות הגדולות: היזון חוזר חיובי לא רצוי ורעשים. בכל לשונית יש משהו לשחק איתו.</p>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="נושאים">
+  <button role="tab" id="t-ideal" aria-controls="p-ideal">האידיאלי</button>
+  <button role="tab" id="t-pins" aria-controls="p-pins">פינים וכניסות</button>
+  <button role="tab" id="t-lab" aria-controls="p-lab">מעבדת מעגלים</button>
+  <button role="tab" id="t-positive" aria-controls="p-positive">היזון חוזר חיובי</button>
+  <button role="tab" id="t-noise" aria-controls="p-noise">רעשים</button>
+  <button role="tab" id="t-glossary" aria-controls="p-glossary">מילון</button>
+</nav>
+
+<main>
+<!-- ===================== IDEAL ===================== -->
+<section id="p-ideal" role="tabpanel" aria-labelledby="t-ideal" hidden>
+  <h2>מהו מגבר שרת</h2>
+  <div class="two">
+    <div>
+      <p>מגבר שרת הוא מגבר מתח דיפרנציאלי בעל הגבר עצום. הוא מגביר רק את <b>ההפרש</b> בין שתי הכניסות שלו, ולא את מה שמשותף להן.</p>
+      <span class="eq">Vout = A · (V+ − V−)</span>
+      <p>ל־A יש ערך של מאה אלף ויותר. לכן, בלי היזון חוזר, הפרש של כמה עשרות מיקרו־וולט כבר דוחף את היציאה לפסגת האספקה (רוויה). מחברים חלק מהיציאה בחזרה לכניסה ההופכת (היזון חוזר שלילי), וכך ההגבר הסופי נקבע על ידי נגדים חיצוניים ולא על ידי הרכיב עצמו.</p>
+    </div>
+    <svg class="sch" viewBox="0 0 330 200" role="img" aria-label="סמל מגבר שרת עם כניסות ויציאה">
+      <polygon class="amp" points="110,30 110,170 250,100"/>
+      <line class="sw" x1="40" y1="65" x2="110" y2="65"/><line class="sw" x1="40" y1="135" x2="110" y2="135"/>
+      <line class="sw" x1="250" y1="100" x2="310" y2="100"/>
+      <line class="sw" x1="180" y1="65" x2="180" y2="12"/><line class="sw" x1="180" y1="135" x2="180" y2="188"/>
+      <text class="tx" x="120" y="70" font-size="18">−</text><text class="tx" x="120" y="141" font-size="18">+</text>
+      <text class="in" x="4" y="60">V− (IN−)</text><text class="in" x="4" y="150">V+ (IN+)</text>
+      <text class="out" x="266" y="90">Vout</text>
+      <text class="txs" x="190" y="18">+Vs</text><text class="txs" x="190" y="186">−Vs</text>
+    </svg>
+  </div>
+
+  <h2>שני כללי הזהב</h2>
+  <p>כשיש היזון שלילי והמגבר אידיאלי, מנתחים כל מעגל עם שני כללים בלבד:</p>
+  <div class="three">
+    <div class="mini"><h3>1. קצר וירטואלי: V+ = V−</h3><p>היציאה סופית (נניח 5 V) ו־A אינסופי, ולכן ההפרש בכניסות הוא Vout/A, כלומר כמעט אפס. המגבר משנה את היציאה עד ששתי הכניסות שוות.</p></div>
+    <div class="mini"><h3>2. אין זרם בכניסות: I+ = I− = 0</h3><p>עכבת הכניסה אינסופית, ולכן כל הזרם שמגיע לצומת ההופך חייב לעבור דרך נגד ההיזון.</p></div>
+    <div class="mini"><h3>התוצאה</h3><p>מהפך: <code>Vout/Vin = −Rf/Rin</code><br>לא־מהפך: <code>Vout/Vin = 1 + Rf/Rg</code><br>עוקב מתח: <code>Vout/Vin = 1</code></p></div>
+  </div>
+
+  <h2>אידיאלי מול אמיתי</h2>
+  <p>המגבר האידיאלי הוא מודל. רכיב אמיתי בחבילת DIP קרוב אליו בתחום מסוים, ומסתבך מחוץ לו. בחר רכיב כדי להשוות.</p>
+  <div class="ctl" style="max-width:340px"><label for="chipSel">רכיב להשוואה</label><select id="chipSel"></select></div>
+  <table class="stack" id="cmp"><thead><tr><th>פרמטר</th><th>אידיאלי</th><th id="cmpChip">אמיתי</th><th>למה זה חשוב</th></tr></thead><tbody></tbody></table>
+  <p class="insight" id="chipNote"></p>
+  <p class="note">הערכים טיפוסיים ומיועדים להמחשה. את הערכים המדויקים, כולל מינימום ומקסימום, יש לקחת מגיליון הנתונים של היצרן.</p>
+</section>
+
+<!-- ===================== PINS ===================== -->
+<section id="p-pins" role="tabpanel" aria-labelledby="t-pins" hidden>
+  <h2>הרכיב מבחוץ: פינים ב־DIP</h2>
+  <p>DIP (Dual In-line Package) הוא רכיב עם שתי שורות פינים. מחזיקים אותו עם החריץ למעלה: <b>פין 1</b> בפינה השמאלית העליונה (ליד הנקודה), הספירה יורדת בצד שמאל ועולה בצד ימין. לחץ על פין כדי לקרוא עליו.</p>
+  <div class="seg" id="pkgSeg" role="group" aria-label="סוג חבילה"></div>
+  <div class="two">
+    <div>
+      <div id="chipBox"></div>
+      <div class="legend" id="pinLegend"></div>
+      <p class="note" id="pkgNote"></p>
+    </div>
+    <div class="card" id="pinCard" aria-live="polite" style="margin-top:0"></div>
+  </div>
+
+  <h2>כל הכניסות בפירוט</h2>
+  <div class="three">
+    <div class="mini"><h3>כניסה הופכת (IN−)</h3><p>מוציאה את האות הפוך בפאזה. אליה מחברים את ההיזון השלילי. במהפך היא מתנהגת כאדמה וירטואלית, כי היציאה דואגת ש־V− יישאר שווה ל־V+.</p></div>
+    <div class="mini"><h3>כניסה לא־הופכת (IN+)</h3><p>האות ביציאה באותה פאזה. בעלת עכבה גבוהה מאוד, ולכן אינה מעמיסה על המקור. חייבת נתיב DC לאדמה או לייחוס, כי זרם ההיסט צריך לזרום ממנה.</p></div>
+    <div class="mini"><h3>פיני איזון (OFFSET NULL)</h3><p>מאפסים בעזרתם את מתח ההיסט הפנימי Vos. פוטנציומטר בין שני הפינים והמגלש ל־V−. נחוץ ביישומי DC מדויקים, וחסר ברוב הרכיבים הכפולים.</p></div>
+    <div class="mini"><h3>אספקה: V+ ו־V−</h3><p>אספקה כפולה (למשל ±15 V) או יחידה (V+ ואדמה). בכניסה לכל פין אספקה שמים קבל 100 nF קרוב מאוד לפין, וחוץ מזה קבל גדול יותר בקרבת הכרטיס.</p></div>
+    <div class="mini"><h3>היציאה (OUT)</h3><p>מקור מתח בעכבה נמוכה עם הגבלת זרם. לא מחברים אותה ליציאה אחרת, ועומס קיבולי גדול דורש נגד בידוד טורי.</p></div>
+    <div class="mini"><h3>פין לא מחובר (NC)</h3><p>אין בו שימוש בחלק מהרכיבים (למשל 741). ברכיבים אחרים הוא כן פעיל, למשל לפיצוי תדר, ולכן בודקים בגיליון הנתונים לפני ההחלטה.</p></div>
+  </div>
+
+  <h2>מה הכניסות רואות</h2>
+  <p>המגבר מגיב רק להפרש <code>Vd = V+ − V−</code>. החלק המשותף <code>Vcm = (V+ + V−)/2</code> אמור להיעלם, ויחס הדחייה שלו נקרא CMRR. הקלד מתחים ובדוק מה קורה בלולאה פתוחה (בלי היזון) לרכיב עם A = 200,000 ואספקה ±15 V.</p>
+  <div class="card">
+    <div class="two">
+      <div>
+        <div class="ctl"><label for="vpIn">V+ (בוולט)</label><input type="number" id="vpIn" step="any" value="2.5" dir="ltr"></div>
+        <div class="ctl"><label for="vnIn">V− (בוולט)</label><input type="number" id="vnIn" step="any" value="2.5" dir="ltr"></div>
+        <div class="ctl"><label for="cmrrIn">CMRR של הרכיב</label>
+          <select id="cmrrIn"><option value="60">60 dB (חלש)</option><option value="90" selected>90 dB (741 טיפוסי)</option><option value="120">120 dB (מדויק)</option></select></div>
+        <div class="seg" id="vdPresets">
+          <button class="btn" data-d="0">הפרש 0</button><button class="btn" data-d="0.00005">הפרש 50 µV</button><button class="btn" data-d="0.001">הפרש 1 mV</button><button class="btn" data-d="1">הפרש 1 V</button>
+        </div>
+      </div>
+      <div>
+        <div class="reads" id="inReads"></div>
+        <svg viewBox="0 0 300 54" style="width:100%;direction:ltr" role="img" aria-label="מד מתח יציאה">
+          <rect x="6" y="14" width="288" height="18" rx="9" fill="var(--panel2)" stroke="var(--line)"/>
+          <line x1="150" y1="10" x2="150" y2="36" stroke="var(--muted)" stroke-width="1"/>
+          <circle id="vGauge" cx="150" cy="23" r="9" fill="var(--sig-out)" stroke="var(--ink)" stroke-width="1.5"/>
+          <text x="6" y="50" fill="var(--muted)" font-size="11" font-family="IBM Plex Mono,monospace">−Vsat</text>
+          <text x="294" y="50" fill="var(--muted)" font-size="11" font-family="IBM Plex Mono,monospace" text-anchor="end">+Vsat</text>
+        </svg>
+        <p class="insight" id="inNote"></p>
+        <div class="fx" id="inFx" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>מגבלות שחשוב להכיר בכניסות</h2>
+  <div class="three">
+    <div class="mini"><h3>תחום המתח המשותף</h3><p>הכניסות עובדות נכון רק כש־Vcm רחוק כ־2 V משני צדי האספקה (ב־741). ב־LM358 התחום כולל את הערך של V−, ולכן הוא מתאים לאספקה יחידה. מחוץ לתחום הרכיב מתנהג מוזר, ולעיתים משתנה סימן ההגבר (ראה לשונית היזון חוזר חיובי).</p></div>
+    <div class="mini"><h3>מתח הפרש מרבי</h3><p>בין שתי הכניסות מותר מתח עד כמה עשרות וולט בחלק מהרכיבים (741), אבל ברכיבים מדויקים יש דיודות הגנה שמגבילות את ההפרש לכ־0.7 V. אין להשתמש בהם כמשווים בלי נגדים טוריים.</p></div>
+    <div class="mini"><h3>אספקה יחידה</h3><p>כשיש רק V+ ואדמה, מזיזים את האות לאמצע האספקה. מחלק מתח עם קבל מקבע ייחוס בכניסה הלא־הופכת, והאות מחובר אליה בקבל. בלי זה חצי הגל השלילי נחתך.</p></div>
+  </div>
+</section>
+
+<!-- ===================== LAB ===================== -->
+<section id="p-lab" role="tabpanel" aria-labelledby="t-lab" hidden>
+  <h2>מעבדת מעגלים</h2>
+  <p>בחר מעגל, שנה ערכים וצפה בסקופ. הכחול הוא Vin, הכתום הוא Vout. הקווים המקווקווים הם גבולות הרוויה. המסלול הסגול במעגל הוא ההיזון, והוא מסומן כשלילי או חיובי.</p>
+  <div class="card">
+    <div class="seg" id="modeSeg" role="group" aria-label="סוג מעגל">
+      <button data-m="inv">מהפך</button><button data-m="noninv">לא־מהפך</button><button data-m="follow">עוקב מתח</button><button data-m="comp">משווה (בלי היזון)</button><button data-m="schmitt">טריגר שמיט (היזון חיובי)</button>
+    </div>
+    <div class="two">
+      <div><svg class="sch" id="schem" viewBox="0 0 420 230" role="img" aria-label="תרשים המעגל הנבחר"></svg><p class="cap" id="schemCap"></p></div>
+      <div id="labCtl">
+        <div class="ctl"><div class="row"><label for="cVp">משרעת אות (שיא)</label><output id="oVp"></output></div><input type="range" id="cVp" min="0.1" max="10" step="0.1" value="1"></div>
+        <div class="ctl"><div class="row"><label for="cDc">הסט DC באות</label><output id="oDc"></output></div><input type="range" id="cDc" min="-5" max="5" step="0.1" value="0"></div>
+        <div class="ctl"><div class="row"><label for="cRin" id="lRin">Rin</label><output id="oRin"></output></div><input type="range" id="cRin" min="1" max="100" step="1" value="10"></div>
+        <div class="ctl" id="rowRf"><div class="row"><label for="cRf">Rf</label><output id="oRf"></output></div><input type="range" id="cRf" min="1" max="500" step="1" value="47"></div>
+        <div class="ctl"><div class="row"><label for="cVs">אספקה ±Vs</label><output id="oVs"></output></div><input type="range" id="cVs" min="5" max="18" step="1" value="15"></div>
+        <div class="ctl"><div class="row"><label for="cNz">רעש בכניסה (rms)</label><output id="oNz"></output></div><input type="range" id="cNz" min="0" max="500" step="5" value="0"></div>
+      </div>
+    </div>
+    <canvas id="scope" class="scope" role="img" aria-label="סקופ עם אות הכניסה והיציאה"></canvas>
+    <div class="reads" id="labReads"></div>
+    <div class="fx" id="labFx" aria-live="polite"></div>
+    <p class="insight" id="labNote"></p>
+  </div>
+  <p class="note">הערה: מוצג מגבר אידיאלי עם גבולות רוויה ב־Vs פחות 1.5 V, תדר אות 1 kHz, ושני מחזורים על המסך. הרעש בכניסה הוא רעש לבן קבוע (אותו דגם בכל הרצה, כדי שההשוואה בין משווה לטריגר שמיט תהיה הוגנת).</p>
+</section>
+
+<!-- ===================== POSITIVE FEEDBACK ===================== -->
+<section id="p-positive" role="tabpanel" aria-labelledby="t-positive" hidden>
+  <h2>למה היזון חוזר חיובי הוא סכנה</h2>
+  <p>היזון שלילי מחזיר מהיציאה אות שמתנגד לסטייה, ולכן כל סטייה מתקנת את עצמה. היזון חיובי מחזיר אות שמחזק את הסטייה. עם הגבר פתוח של 100,000 ויותר, מספיק שבריר קטן שחוזר בפאזה הלא נכונה כדי שהיציאה תינעל בפסגה או תתנודד.</p>
+  <span class="eq">שלילי: Acl = A / (1 + Aβ) &nbsp;&nbsp; חיובי: Acl = A / (1 − Aβ)</span>
+  <p>כאשר Aβ מתקרב ל־1 במקרה החיובי, ההגבר מתפוצץ. אבל יש גם צורה סמויה: מעגל שתוכנן עם היזון שלילי הופך לחיובי בתדר מסוים. כל קוטב בלולאה (הרכיב עצמו, קיבול תועה, עומס קיבולי) מוסיף השהיית פאזה. בתדר שבו ההשהיה הכוללת מגיעה ל־180°, ההיזון השלילי נעשה חיובי. אם ההגבר של הלולאה שם עדיין 1 ומעלה, המעגל מתנודד (קריטריון בארקהאוזן).</p>
+  <p>המדד הוא <b>שולי פאזה</b> (phase margin): כמה מעלות חסרות לפני שההיזון נעשה חיובי בתדר שבו הגבר הלולאה יורד ל־1. מעל 60° המעגל נקי, 45° עד 60° מתאים לרוב היישומים, מתחת ל־45° יש צלצול, וקרוב ל־0° המעגל מתנודד.</p>
+
+  <h2>מעבדת יציבות</h2>
+  <p>המודל מציג מגבר לא־מהפך עם היזון חוזר שלילי, ומוסיף לו את הבעיות המציאותיות. שנה ערכים וצפה בתגובה לצעד. אם שולי הפאזה יורדים לאפס, ההיזון השלילי כבר חיובי בתדר הצלצול, והיציאה מתנודדת.</p>
+  <div class="card">
+    <div class="seg" id="stPresets" role="group" aria-label="תרחישים">
+      <button class="btn" data-s="clean">מעגל נקי</button><button class="btn" data-s="cable">כבל ארוך ביציאה</button><button class="btn" data-s="osc">כבל ארוך ורכיב מהיר</button><button class="btn" data-s="cableFix">תיקון: נגד בידוד</button><button class="btn" data-s="stray">קיבול תועה בכניסה</button><button class="btn" data-s="strayFix">תיקון: קבל Cf</button>
+    </div>
+    <div class="two">
+      <div>
+        <div class="ctl"><div class="row"><label for="sGbw">מכפלת הגבר × רוחב פס (GBW)</label><span class="nv"><input type="number" id="sGbw" value="1" min="0.1" max="100" step="any" dir="ltr"><span class="u">MHz</span></span></div>
+          <span class="note">741 ו־LM358: 1, TL081: 3, NE5534: 10</span></div>
+        <div class="ctl"><div class="row"><label for="sG">הגבר המעגל (1 + Rf/Rg)</label><span class="nv"><input type="number" id="sG" value="10" min="1" max="1000" step="any" dir="ltr"><span class="u">×</span></span></div></div>
+        <div class="ctl"><div class="row"><label for="sCL">עומס קיבולי ביציאה (כבל)</label><output id="oCL"></output></div><input type="range" id="sCL" min="0" max="7" step="1" value="0"></div>
+        <div class="ctl"><div class="row"><label for="sRiso">נגד בידוד טורי ביציאה</label><output id="oRiso"></output></div><input type="range" id="sRiso" min="0" max="200" step="5" value="0"></div>
+        <div class="ctl"><div class="row"><label for="sCin">קיבול תועה בכניסה ההופכת</label><output id="oCin"></output></div><input type="range" id="sCin" min="0" max="20" step="1" value="2"></div>
+        <div class="ctl"><div class="row"><label for="sCf">קבל Cf מקביל ל־Rf</label><output id="oCf"></output></div><input type="range" id="sCf" min="0" max="100" step="1" value="0"></div>
+      </div>
+      <div>
+        <div class="reads" id="stReads"></div>
+        <p class="insight" id="stNote"></p>
+        <div class="fx" id="stFx" aria-live="polite"></div>
+        <p class="note">מודל מפושט: הרכיב הוא שני קטבים (השני בכ־1.7 מכפלת ה־GBW, שולי פאזה של 60° בהגבר 1), עכבת יציאה פתוחה 75 Ω, ו־Rg קבוע ב־10 kΩ. מספיק להמחשת הכיוון והסדר גודל, לא לתכנון מדויק.</p>
+      </div>
+    </div>
+    <canvas id="stScope" class="scope tall" role="img" aria-label="תגובה לצעד של היציאה"></canvas>
+  </div>
+
+  <h2>מקורות להיזון חיובי לא רצוי, ואיך מונעים</h2>
+  <table class="stack">
+    <thead><tr><th>מקור</th><th>למה זה קורה</th><th>איך מונעים</th></tr></thead>
+    <tbody id="fixRows"></tbody>
+  </table>
+
+  <h2>חיבור מומלץ</h2>
+  <div class="two">
+    <svg class="sch" viewBox="0 0 500 290" role="img" aria-label="מהפך עם קבלי הפרדה, Cf ונגד בידוד">
+      <polygon class="amp" points="190,90 190,210 300,150"/>
+      <text class="tx" x="198" y="125" font-size="16">−</text><text class="tx" x="198" y="190" font-size="16">+</text>
+      <!-- input -->
+      <circle cx="18" cy="120" r="3" fill="none" stroke="var(--sig-in)" stroke-width="2"/><text class="in" x="8" y="108">Vin</text>
+      <path class="sw" d="M21 120 H50"/><rect class="rb" x="50" y="112" width="60" height="16"/><text class="tx" x="66" y="108">Rin</text>
+      <path class="sw" d="M110 120 H190"/><circle class="dotf" cx="150" cy="120" r="3.5"/>
+      <!-- feedback -->
+      <path class="fbw" d="M150 120 V30 H210 M290 30 H330 V150"/>
+      <rect class="rbf" x="210" y="22" width="80" height="16"/><text class="txf" x="212" y="52">Rf</text>
+      <path class="fbw" d="M190 30 V8 H250 M262 8 H310 V30"/>
+      <path class="fbw" d="M250 0 V16 M262 0 V16"/>
+      <text class="txf" x="316" y="12">Cf</text>
+      <circle class="dotf" cx="190" cy="30" r="3.5"/><circle class="dotf" cx="310" cy="30" r="3.5"/>
+      <!-- In+ ground -->
+      <path class="sw" d="M190 180 H160 V200"/><path class="sw" d="M148 200 H172 M153 205 H167 M158 210 H162"/>
+      <!-- output -->
+      <path class="sw" d="M300 150 H345"/><circle class="dotf" cx="330" cy="150" r="3.5"/>
+      <rect class="rb" x="345" y="142" width="55" height="16"/><text class="tx" x="347" y="138">Riso</text>
+      <path class="sw" d="M400 150 H470"/><text class="out" x="440" y="140">Vout</text>
+      <circle class="dot" cx="430" cy="150" r="3.5"/>
+      <path class="sw" d="M430 150 V168 M420 168 H440 M420 174 H440 M430 174 V190"/><path class="sw" d="M418 190 H442 M423 195 H437 M428 200 H432"/><text class="txs" x="446" y="176">CL</text>
+      <!-- supplies -->
+      <path class="sw" d="M240 118 V60"/><text class="tx" x="248" y="66">V+ (7)</text>
+      <path class="sw" d="M240 75 H275 V95 M265 95 H285 M265 101 H285 M275 101 V112"/><path class="sw" d="M263 112 H287 M268 117 H282 M273 122 H277"/><circle class="dot" cx="240" cy="75" r="3"/><text class="txs" x="290" y="102">100 nF</text>
+      <path class="sw" d="M240 182 V250"/><text class="tx" x="224" y="268">V− (4)</text>
+      <path class="sw" d="M240 222 H275 V232 M265 232 H285 M265 238 H285 M275 238 V250"/><path class="sw" d="M263 250 H287 M268 255 H282 M273 260 H277"/><circle class="dot" cx="240" cy="222" r="3"/><text class="txs" x="290" y="240">100 nF</text>
+      <text class="txs" x="172" y="114">2</text><text class="txs" x="172" y="174">3</text><text class="txs" x="304" y="142">6</text>
+    </svg>
+    <div>
+      <ul class="tight">
+        <li><b>קבלי הפרדה (בנקודה 7 ו־4):</b> 100 nF קרמי כמה מילימטרים מהפין. הם סוגרים בקרבת הרכיב את זרמי התדר הגבוה, כך שלא יזרמו דרך חוטי האספקה הארוכים.</li>
+        <li><b>Cf ליד Rf:</b> מחזיר פאזה למעגל ומונע צלצול כשיש קיבול בכניסה ההופכת.</li>
+        <li><b>Riso ביציאה:</b> מנתק את העומס הקיבולי מהלולאה. ההיזון נלקח לפני הנגד.</li>
+        <li><b>כניסה לא־הופכת:</b> נתיב DC לאדמה, ולעיתים נגד שווה ל־Rin‖Rf לצמצום השפעת זרם ההיסט.</li>
+      </ul>
+      <p class="note">מספרי הפינים מתאימים ל־741 ב־DIP-8. סגול הוא נתיב ההיזון השלילי.</p>
+    </div>
+  </div>
+
+  <h2>כשההיזון החיובי מכוון</h2>
+  <p>לפעמים רוצים היזון חיובי: טריגר שמיט (ראה מעבדת מעגלים) יוצר היסטרזיס וקובע שני ספי החלטה במקום אחד. כשיש רעש בכניסה, משווה בלי היזון מקפץ סביב הסף. טריגר שמיט מקבל החלטה אחת ויציבה. הסף העליון והתחתון (במקרה שבו Vin מחובר דרך R1 ל־IN+): <code>±Vsat · R1 / Rf</code>.</p>
+  <h3>רשימת בדיקה לפני הדלקה</h3>
+  <ul class="tight">
+    <li>החריץ למעלה, פין 1 משמאל, הספירה נכונה.</li>
+    <li>ההיזון חוזר ל־IN− ולא ל־IN+ (פין 2 ולא פין 3 ב־741).</li>
+    <li>קבל 100 nF בכל פין אספקה, צמוד לרכיב.</li>
+    <li>אין כניסה צפה, גם במגברים שאינם בשימוש.</li>
+    <li>יש נתיב DC לאדמה בכל כניסה.</li>
+    <li>יש נגד בידוד אם יש כבל או עומס קיבולי גדול.</li>
+    <li>בסקופ: צעד ריבועי בלי חריגה של יותר מ־10 עד 20 אחוז.</li>
+  </ul>
+</section>
+
+<!-- ===================== NOISE ===================== -->
+<section id="p-noise" role="tabpanel" aria-labelledby="t-noise" hidden>
+  <h2>מאיפה מגיע רעש</h2>
+  <p>רעש הוא כל אות שלא רצית. חלקו פנימי (הנגדים והרכיב), וחלקו חיצוני (האספקה, הרשת, שדות). חשוב להבחין, כי כל סוג מטופל אחרת.</p>
+  <table class="stack">
+    <thead><tr><th>מקור</th><th>מה זה</th><th>איך מצמצמים</th></tr></thead>
+    <tbody id="noiseRows"></tbody>
+  </table>
+
+  <h2>מחשבון רעש</h2>
+  <p>מגבר לא־מהפך, מקור אות בעל התנגדות Rs. הרעש מכל מקור מחושב בנפרד ומתחבר בריבוע, כי הרעשים בלתי תלויים. הטמפרטורה קבועה על 300 K.</p>
+  <div class="card">
+    <div class="two">
+      <div>
+        <div class="ctl"><label for="nChip">רכיב (ממלא את הערכים למטה, ואפשר לשנות אותם)</label><select id="nChip"></select></div>
+        <div class="ctl"><div class="row"><label for="nEn">רעש מתח en</label><span class="nv"><input type="number" id="nEn" value="20" min="0" step="any" dir="ltr"><span class="u">nV/√Hz</span></span></div></div>
+        <div class="ctl"><div class="row"><label for="nIn">רעש זרם in</label><span class="nv"><input type="number" id="nIn" value="0.5" min="0" step="any" dir="ltr"><span class="u">pA/√Hz</span></span></div></div>
+        <div class="ctl"><div class="row"><label for="nRs">התנגדות המקור Rs</label><output id="oRs"></output></div><input type="range" id="nRs" min="0" max="100" step="1" value="30"></div>
+        <div class="ctl"><div class="row"><label for="nG">הגבר (1 + Rf/Rg)</label><span class="nv"><input type="number" id="nG" value="10" min="1" max="100000" step="any" dir="ltr"><span class="u">×</span></span></div></div>
+        <div class="ctl"><div class="row"><label for="nRg">Rg (ו־Rf נגזר מההגבר)</label><output id="oRg"></output></div><input type="range" id="nRg" min="0" max="100" step="1" value="40"></div>
+        <div class="ctl"><div class="row"><label for="nB">רוחב פס הרעש</label><output id="oB"></output></div><input type="range" id="nB" min="0" max="100" step="1" value="50"></div>
+        <div class="ctl"><label for="nSig">אות כניסה (mV rms)</label><input type="number" id="nSig" value="10" min="0.001" step="any" dir="ltr"></div>
+      </div>
+      <div>
+        <div class="reads" id="nReads"></div>
+        <h4>חלק מכל מקור בהספק הרעש בכניסה</h4>
+        <div class="bars" id="nBars"></div>
+        <p class="insight" id="nNote"></p>
+        <div class="fx" id="nFx" aria-live="polite"></div>
+      </div>
+    </div>
+    <canvas id="nScope" class="scope" role="img" aria-label="המחשה של רעש היציאה"></canvas>
+    <p class="note">המחשבון מניח רעש לבן בלבד. מתחת לפינת 1/f (בדרך כלל עשרות עד מאות הרץ) הרעש האמיתי גדול יותר. את הפקטור 6.6 לשיא־לשיא (כ־99.9 אחוז מהזמן) מקבלים מהתפלגות גאוסיאנית.</p>
+  </div>
+
+  <h2>איך מורידים רעש בפועל</h2>
+  <div id="noiseTips"></div>
+</section>
+
+<!-- ===================== GLOSSARY ===================== -->
+<section id="p-glossary" role="tabpanel" aria-labelledby="t-glossary" hidden>
+  <h2>מילון מושגים</h2>
+  <div class="ctl search"><label for="gSearch">חיפוש מושג</label><input type="search" id="gSearch" placeholder="למשל CMRR, offset, הפרדה" style="font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;width:100%"></div>
+  <dl class="gl" id="glList"></dl>
+</section>
+</main>
+</div>
+
+<script>
+document.documentElement.lang='he';document.documentElement.dir='rtl';
+/*PURE-START*/
+function eng(x,u,d){u=u||'';d=d||3;if(!isFinite(x))return '∞ '+u;if(x===0)return '0 '+u;
+  var a=Math.abs(x),P=[[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']];
+  for(var i=0;i<P.length;i++){if(a>=P[i][0]*0.9995){return (+(x/P[i][0]).toPrecision(d))+' '+P[i][1]+u;}}
+  return (+(x*1e12).toPrecision(d))+' p'+u;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gaussArray(n,seed){var r=mulberry32(seed),o=new Float32Array(n);for(var i=0;i<n;i+=2){var u=Math.max(r(),1e-9),v=r(),m=Math.sqrt(-2*Math.log(u));o[i]=m*Math.cos(2*Math.PI*v);if(i+1<n)o[i+1]=m*Math.sin(2*Math.PI*v);}return o;}
+/* Loop analysis for a non-inverting amp. P: gbw,G,CL,Riso,Cf,Cin */
+function loopParams(P){
+  var A0=2e5,wp1=2*Math.PI*P.gbw/A0,wp2=2*Math.PI*P.gbw*1.732,Ro=75,Rg=1e4,Rf=(P.G-1)*Rg;
+  var tz=P.CL>0?P.Riso*P.CL:0,tp=P.CL>0?(Ro+P.Riso)*P.CL:0;
+  var t1=Rf*P.Cf,t2=Rf>0&&(P.Cf+P.Cin)>0?(Rf*Rg/(Rf+Rg))*(P.Cf+P.Cin):0;
+  return {A0:A0,wp1:wp1,wp2:wp2,Ro:Ro,Rg:Rg,Rf:Rf,beta0:1/P.G,tz:tz,tp:tp,t1:t1,t2:t2,gbw:P.gbw,G:P.G};
+}
+function loopAt(L,w){
+  var mag=L.A0*L.beta0/Math.sqrt((1+(w/L.wp1)*(w/L.wp1))*(1+(w/L.wp2)*(w/L.wp2)))
+    *Math.sqrt((1+(w*L.tz)*(w*L.tz))/(1+(w*L.tp)*(w*L.tp)))
+    *Math.sqrt((1+(w*L.t1)*(w*L.t1))/(1+(w*L.t2)*(w*L.t2)));
+  var ph=-Math.atan(w/L.wp1)-Math.atan(w/L.wp2)+Math.atan(w*L.tz)-Math.atan(w*L.tp)+Math.atan(w*L.t1)-Math.atan(w*L.t2);
+  return {mag:mag,ph:ph};
+}
+function phaseMargin(P){
+  var L=loopParams(P),fc=null,n=4000,lo=Math.log10(100),hi=Math.log10(2e9);
+  for(var i=0;i<=n;i++){var f=Math.pow(10,lo+(hi-lo)*i/n);if(loopAt(L,2*Math.PI*f).mag>=1)fc=f;}
+  if(fc===null)return {fc:100,pm:90,L:L};
+  var r=loopAt(L,2*Math.PI*fc);return {fc:fc,pm:180+r.ph*180/Math.PI,L:L};
+}
+function stepResponse(P,pts){
+  var an=phaseMargin(P),L=an.L,Vsat=13.5,V0=2/P.G;
+  var dt=0.04/(2*Math.PI*P.gbw);
+  var T=Math.min(Math.max(14/an.fc,4e-7),120000*dt);
+  var steps=Math.max(10,Math.round(T/dt)),stride=Math.max(1,Math.ceil(steps/pts));
+  var kL=L.tp>0?L.tz/L.tp:1,kb=L.t2>0?L.t1/L.t2:1;
+  var x1=0,x2=0,xL=0,xb=0,out=new Float32Array(pts),k=0;
+  function cl(v){return v>Vsat?Vsat:(v<-Vsat?-Vsat:v);}
+  function deriv(s1,s2,sL,sb){
+    var Vi=cl(s2),Vo=L.tp>0?kL*Vi+(1-kL)*sL:Vi;
+    var fb=L.beta0*(L.t2>0?kb*Vo+(1-kb)*sb:Vo),eps=V0-fb;
+    return [L.wp1*(L.A0*eps-s1),L.wp2*(s1-s2),L.tp>0?(Vi-sL)/L.tp:0,L.t2>0?(Vo-sb)/L.t2:0,Vo];
+  }
+  for(var i=0;i<steps&&k<pts;i++){
+    var a=deriv(x1,x2,xL,xb);
+    if(i%stride===0){out[k++]=a[4];}
+    var b=deriv(x1+dt/2*a[0],x2+dt/2*a[1],xL+dt/2*a[2],xb+dt/2*a[3]);
+    var c=deriv(x1+dt/2*b[0],x2+dt/2*b[1],xL+dt/2*b[2],xb+dt/2*b[3]);
+    var d=deriv(x1+dt*c[0],x2+dt*c[1],xL+dt*c[2],xb+dt*c[3]);
+    x1+=dt/6*(a[0]+2*b[0]+2*c[0]+d[0]);x2+=dt/6*(a[1]+2*b[1]+2*c[1]+d[1]);
+    xL+=dt/6*(a[2]+2*b[2]+2*c[2]+d[2]);xb+=dt/6*(a[3]+2*b[3]+2*c[3]+d[3]);
+    x1=cl(x1);x2=cl(x2);
+  }
+  return {y:out.subarray(0,k),T:steps*dt,V:V0*P.G,an:an};
+}
+function noiseCalc(o){
+  var kT4=4*1.380649e-23*300,Rp=o.G>1?o.Rg*(o.G-1)/o.G:0;
+  var c={en:o.en*1e-9,inRs:o.inn*1e-12*o.Rs,tRs:Math.sqrt(kT4*o.Rs),tRp:Math.sqrt(kT4*Rp),inRp:o.inn*1e-12*Rp};
+  var sq=c.en*c.en+c.inRs*c.inRs+c.tRs*c.tRs+c.tRp*c.tRp+c.inRp*c.inRp,tot=Math.sqrt(sq);
+  var inRms=tot*Math.sqrt(o.B),outRms=inRms*o.G;
+  return {c:c,sq:sq,tot:tot,inRms:inRms,outRms:outRms,outPP:6.6*outRms,snr:20*Math.log10(o.sig/inRms),Rp:Rp,Rf:o.Rg*(o.G-1)};
+}
+/*PURE-END*/
+
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var SIG={in:'#6CB0FF',out:'#FFB84D',fb:'#FF7DB8',grid:'#1E3329',gridC:'#2F4B3D',txt:'#9DB8AA',rail:'#4B6B5A'};
+
+/* ---------- tabs ---------- */
+var TABS=['ideal','pins','lab','positive','noise','glossary'];
+var redraws={};
+function show(id,push){
+  if(TABS.indexOf(id)<0)id='ideal';
+  TABS.forEach(function(t){var on=t===id;$('#p-'+t).hidden=!on;var b=$('#t-'+t);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});
+  if(push){try{history.replaceState(null,'','#'+id);}catch(e){}}
+  requestAnimationFrame(function(){(redraws[id]||[]).forEach(function(f){f();});});
+}
+TABS.forEach(function(t,i){
+  var b=$('#t-'+t);
+  b.addEventListener('click',function(){show(t,true);window.scrollTo(0,0);});
+  b.addEventListener('keydown',function(e){
+    var k=e.key,j=-1;if(k==='ArrowLeft')j=(i+1)%TABS.length;if(k==='ArrowRight')j=(i+TABS.length-1)%TABS.length;
+    if(j>=0){e.preventDefault();show(TABS[j],true);$('#t-'+TABS[j]).focus();}
+  });
+});
+function onTab(id,f){(redraws[id]=redraws[id]||[]).push(f);}
+function canvasSetup(c){
+  var dpr=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(!w||!h)return null;
+  var W=Math.round(w*dpr),H=Math.round(h*dpr);if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+  var x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.direction='ltr';return {x:x,w:w,h:h};
+}
+function watch(c,f){if(window.ResizeObserver){new ResizeObserver(function(){f();}).observe(c);}}
+
+/* ---------- manual value entry: a number box next to each slider, plus dynamic formulas ---------- */
+var CLV=[0,0.1,0.2,0.5,1,2,5,10]; /* nF */
+var PAIRS={};
+function numFmt(v){return String(+Number(v).toPrecision(6));}
+function V(id){var n=document.getElementById('n_'+id);if(n){var v=parseFloat(n.value);if(isFinite(v))return v;}return +document.getElementById(id).value;}
+function pair(id,unit,toNum,toSlider,keepOut){
+  var r=document.getElementById(id),ctl=r.closest('.ctl'),out=ctl.querySelector('output'),lab=ctl.querySelector('label');
+  toNum=toNum||function(s){return +s;};toSlider=toSlider||function(v){return v;};
+  var wrap=document.createElement('span');wrap.className='nv';
+  var n=document.createElement('input');n.type='number';n.step='any';n.id='n_'+id;n.setAttribute('dir','ltr');n.setAttribute('aria-label',lab?lab.textContent:id);
+  var u=document.createElement('span');u.className='u';u.textContent=unit;
+  wrap.appendChild(n);wrap.appendChild(u);out.parentNode.insertBefore(wrap,out);if(!keepOut)out.hidden=true;
+  PAIRS[id]={n:n,toNum:toNum,toSlider:toSlider};n.value=numFmt(toNum(r.value));
+  r.addEventListener('input',function(){if(!n._t)n.value=numFmt(toNum(r.value));});
+  n.addEventListener('input',function(){var v=parseFloat(n.value);if(!isFinite(v))return;r.value=toSlider(v);n._t=true;r.dispatchEvent(new Event('input',{bubbles:true}));n._t=false;});
+}
+function setPair(id,v){var p=PAIRS[id];p.n.value=numFmt(v);document.getElementById(id).value=p.toSlider(v);}
+function lgMap(lo,hi){return {n:function(s){return +Math.pow(10,lo+(hi-lo)*(+s)/100).toPrecision(3);},s:function(v){return Math.max(0,Math.min(100,100*(Math.log10(Math.max(v,1e-12))-lo)/(hi-lo)));}};}
+var mRs=lgMap(1,7),mRg=lgMap(2,5),mB=lgMap(1,6);
+pair('cVp','V');pair('cDc','V');pair('cRin','kΩ');pair('cRf','kΩ');pair('cVs','V');pair('cNz','mV');
+pair('sCL','nF',function(s){return CLV[+s];},function(v){var b=0,d=1e9;CLV.forEach(function(c,i){var e=Math.abs(c-v);if(e<d){d=e;b=i;}});return b;});
+pair('sRiso','Ω');pair('sCin','pF');pair('sCf','pF');
+pair('nRs','Ω',mRs.n,mRs.s,true);pair('nRg','Ω',mRg.n,mRg.s,true);pair('nB','Hz',mB.n,mB.s,true);
+function nm(x){return String(+Number(x).toPrecision(4));}
+function fxHTML(title,rows){return '<h4>'+title+'</h4>'+rows.map(function(r){return '<div class="l">'+r[0]+(r[1]?' <span class="s">=</span> '+r[1]:'')+(r[2]!==null?' <span class="s">=</span> <span class="r">'+r[2]+'</span>':'')+'</div>';}).join('');}
+
+/* ---------- chips data ---------- */
+var CHIPS={
+ lm741:{name:'LM741',en:20,inn:0.5,note:'הוותיק והמוכר, נוח ללימוד. פחות מתאים לתכנון חדש: רעש גבוה יחסית, אינו rail-to-rail, ומהירותו נמוכה.',
+  rows:{A:'200,000 (106 dB)',Zin:'2 MΩ',Zout:'75 Ω',GBW:'1 MHz',SR:'0.5 V/µs',CMRR:'90 dB',Vos:'1 mV (עד 6 mV)',Ib:'80 nA',en:'20 nV/√Hz',inn:'0.5 pA/√Hz',swing:'בערך ±(Vs − 2 V)'}},
+ tl081:{name:'TL081',en:18,inn:0.01,note:'כניסות JFET: זרם כניסה של פיקו־אמפרים ועכבה גבוהה מאוד. מתאים למקורות בעכבה גבוהה כמו חיישנים וקבלים פוטו.',
+  rows:{A:'200,000 (106 dB)',Zin:'10¹² Ω',Zout:'≈ 100 Ω',GBW:'3 MHz',SR:'13 V/µs',CMRR:'86 dB',Vos:'3 mV',Ib:'30 pA',en:'18 nV/√Hz',inn:'0.01 pA/√Hz',swing:'בערך ±(Vs − 1.5 V)'}},
+ lm358:{name:'LM358',en:40,inn:0.2,note:'כפול, אספקה יחידה אפשרית, הכניסות כוללות את האדמה והיציאה יורדת כמעט ל־0 V. איטי ורועש יחסית.',
+  rows:{A:'100,000 (100 dB)',Zin:'≈ 1 MΩ',Zout:'≈ 100 Ω',GBW:'1 MHz',SR:'0.3 V/µs',CMRR:'85 dB',Vos:'2 mV',Ib:'45 nA',en:'40 nV/√Hz',inn:'≈ 0.2 pA/√Hz',swing:'מ־0 V עד בערך V+ − 1.5 V'}},
+ ne5534:{name:'NE5534',en:3.5,inn:0.4,note:'רעש נמוך מאוד ומהיר. אינו יציב בהגבר 1 בלי קבל פיצוי חיצוני בין פינים 5 ו־8 (כ־22 pF), דוגמה לכך שלא כל רכיב מתאים לכל מעגל.',
+  rows:{A:'100,000 (100 dB)',Zin:'100 kΩ',Zout:'≈ 0.3 Ω',GBW:'10 MHz',SR:'13 V/µs',CMRR:'100 dB',Vos:'0.5 mV',Ib:'500 nA',en:'3.5 nV/√Hz',inn:'0.4 pA/√Hz',swing:'בערך ±(Vs − 2 V)'}}
+};
+var PARAMS=[
+ ['A','הגבר בלולאה פתוחה','A','∞','קובע כמה קרוב המעגל לאידיאלי. ככל ש־A גדול יותר, ה־V+ − V− קטן יותר.'],
+ ['Zin','עכבת כניסה','Zin','∞','עכבה גבוהה אומרת שהמעגל לא מעמיס על המקור.'],
+ ['Zout','עכבת יציאה (בלולאה פתוחה)','Zout','0','עכבה נמוכה מאפשרת להניע עומס בלי שהמתח יצנח.'],
+ ['GBW','מכפלת הגבר × רוחב פס','GBW','∞','רוחב הפס במעגל סגור ≈ GBW חלקי ההגבר. בהגבר 100 וב־1 MHz מקבלים כ־10 kHz בלבד.'],
+ ['SR','קצב שינוי (slew rate)','SR','∞','המהירות המרבית של שינוי היציאה. אות גדול ומהיר יכול להתעוות גם כשרוחב הפס מספיק.'],
+ ['CMRR','יחס דחיית מתח משותף','CMRR','∞','כמה הרכיב מתעלם ממה שמשותף לשתי הכניסות (למשל זמזום רשת).'],
+ ['Vos','מתח היסט כניסה','Vos','0','יציאה שאינה אפס כשהכניסות שוות. בהגבר גבוה היסט קטן נהפך להיסט גדול ביציאה.'],
+ ['Ib','זרם הטיה בכניסה','Ib','0','זרם קטן שנכנס לכל כניסה. על פני נגדים גדולים הוא יוצר מתח היסט.'],
+ ['en','רעש מתח בכניסה','en','0','רעש הרכיב עצמו, מבוטא כצפיפות ספקטרלית. ראה לשונית רעשים.'],
+ ['in','רעש זרם בכניסה','inn','0','חשוב כשהעכבות במעגל גבוהות, כי הוא יוצר מתח על פני הנגדים.'],
+ ['swing','תחום תנודת היציאה','swing','±Vs (עד הפסגה)','היציאה לא מגיעה לפסגת האספקה, אלא עוצרת קצת לפניה.']
+];
+function renderCmp(k){
+  var c=CHIPS[k],tb=$('#cmp tbody');$('#cmpChip').textContent=c.name;
+  tb.innerHTML=PARAMS.map(function(p){
+    return '<tr><td class="p" data-l="פרמטר">'+p[1]+'<small>'+p[0]+'</small></td><td data-l="אידיאלי"><span class="num">'+p[3]+'</span></td><td data-l="'+c.name+'"><span class="num">'+c.rows[p[2]]+'</span></td><td data-l="למה זה חשוב">'+p[4]+'</td></tr>';
+  }).join('');
+  $('#chipNote').textContent=c.note;
+}
+(function(){
+  var sel=$('#chipSel'),nsel=$('#nChip');
+  Object.keys(CHIPS).forEach(function(k){
+    [sel,nsel].forEach(function(s){var o=document.createElement('option');o.value=k;o.textContent=CHIPS[k].name;s.appendChild(o);});
+  });
+  sel.addEventListener('change',function(){renderCmp(sel.value);});
+  renderCmp('lm741');
+})();
+
+/* ---------- pins ---------- */
+function mkIn(inv,sec,spare){
+  var s=sec?' · מגבר '+sec:'';
+  var extra=spare?' מגבר שאינו בשימוש: חבר אותו כעוקב מתח (IN− ליציאה) ואת IN+ למתח באמצע האספקה, כדי שהכניסות לא יישארו צפות.':'';
+  if(inv)return {t:'in',s:'inv',he:'כניסה הופכת'+s,
+    d:'כניסה הופכת (−). האות המגיע אליה מופיע ביציאה הפוך בפאזה, בהיפוך של 180°. אליה מחברים את ההיזון השלילי מהיציאה, ולכן בפועל היציאה מתכווננת עד ש־V− שווה ל־V+ (קצר וירטואלי).',
+    c:'במהפך: נגד כניסה Rin מהאות, ונגד היזון Rf מהיציאה. במגבר לא־מהפך: מחלק מתח Rf/Rg. בעוקב מתח: חוט ישיר מהיציאה.',
+    m:'להשאיר את הכניסה צפה: היציאה בורחת לפסגה או מתנודדת. לחבר את ההיזון בטעות לכניסה השנייה: זה היזון חיובי והיציאה ננעלת. חיווט ארוך בכניסה זו מוסיף קיבול תועה ומקטין את היציבות.'+extra};
+  return {t:'in',s:'noninv',he:'כניסה לא־הופכת'+s,
+    d:'כניסה לא־הופכת (+). האות ביציאה באותה פאזה. העכבה גבוהה מאוד (מגה־אוהמים, וב־JFET אפילו 10¹² Ω), ולכן היא כמעט לא מעמיסה על המקור.',
+    c:'במגבר לא־מהפך: האות עצמו. במהפך: אדמה או מתח ייחוס. באספקה יחידה: מתח ייחוס באמצע האספקה.',
+    m:'אין נתיב DC לאדמה: זרם ההטיה חייב מסלול. בכניסה בצימוד קבלי חובה נגד (100 kΩ עד 1 MΩ) לאדמה או לייחוס, אחרת הכניסה צפה והיציאה בורחת לפסגה. אין לחבר לכאן את היציאה כהיזון, אלא אם רוצים טריגר שמיט בכוונה.'+extra};
+}
+function mkOut(sec){return {t:'out',s:'out',he:'יציאה'+(sec?' · מגבר '+sec:''),
+  d:'היציאה. מקור מתח בעכבה נמוכה, אבל עם הגבלת זרם (ב־741 כ־25 mA) ותנודה שנעצרת כ־1.5 עד 2 V לפני פסגות האספקה. רכיבי rail-to-rail מגיעים כמעט לפסגה.',
+  c:'לעומס, ובאותו זמן לנקודת ההיזון (Rf) בחזרה לכניסה ההופכת. לעומס קיבולי או כבל ארוך: נגד בידוד טורי של 10 עד 100 Ω.',
+  m:'חיבור שתי יציאות יחד, קצר ליציאה, עומס קיבולי גדול ישירות על הפין (צלצול או תנודה), וחיבור היציאה לכניסה הלא־הופכת (נעילה).'};}
+function mkVp(note){return {t:'pwr',s:'vp',he:'אספקה חיובית (V+, Vcc)',
+  d:'אספקה חיובית. נותנת לרכיב אנרגיה וקובעת את גבול התנודה העליון של היציאה. '+(note||''),
+  c:'+5 עד +15 V, או V+ יחיד באספקה אחת. קבל קרמי 100 nF לאדמה קרוב ככל האפשר לפין, ובנוסף 1 עד 10 µF בקרבת הכרטיס.',
+  m:'בלי קבל הפרדה: רעש מהאספקה ותנודות בתדר גבוה. מתח גבוה מהמקסימום בגיליון הנתונים, או היפוך קוטביות, הורסים את הרכיב.'};}
+function mkVn(note){return {t:'pwr',s:'vn',he:'אספקה שלילית (V−, Vee) או אדמה',
+  d:'באספקה כפולה (למשל ±15 V) זה −15 V. באספקה יחידה (למשל LM358/LM324) הפין מחובר לאדמה. '+(note||''),
+  c:'−5 עד −15 V, או GND באספקה יחידה. גם כאן קבל 100 nF לאדמה קרוב לפין.',
+  m:'בלי קבל הפרדה, או חיבור הפין לאדמה ברכיב שדורש אספקה כפולה: כשהכניסות נמוכות מ־V− + כ־2 V הרכיב לא יעבוד כראוי.'};}
+var NC={t:'nc',s:'nc',he:'לא מחובר (NC)',
+  d:'No Connect: ב־741 אין בפין הזה מעגל פעיל. הוא קיים רק כדי להשלים את החבילה.',
+  c:'להשאיר ללא חיבור.',
+  m:'ברכיבים אחרים הפין הזה כן פעיל (בחלק מהם לפיצוי תדר), לכן בודקים בגיליון הנתונים לפני שמחברים משהו או משתמשים בו כנקודת חיווט.'};
+function mkTrim(n){return {t:'trim',s:'trim',he:'איזון היסט (Offset Null)',
+  d:'לכל מגבר יש מתח היסט פנימי קטן Vos (מילי־וולטים) שגורם ליציאה להיות שונה מאפס כשהכניסות שוות. פינים 1 ו־5 מחוברים לשני קצוות פוטנציומטר שמאזן את שני צדי השלב הדיפרנציאלי.',
+  c:'פוטנציומטר 10 kΩ בין פין 1 לפין 5, והמגלש ל־V− (פין 4). מכווננים כשהכניסה מקוצרת לאדמה, עד שהיציאה מתאפסת. ברכיבים אחרים (TL081 ועוד) הערך והחיבור לפי גיליון הנתונים.',
+  m:'לחבר את המגלש ל־V+ או לאדמה, להשתמש בפוטנציומטר לא יציב (סחיפה ורעש), או להשאיר את הפינים פתוחים ביישום DC מדויק.'};}
+var PKG={
+ single:{name:'DIP-8 · מגבר יחיד',n:8,parts:'LM741 · TL081 · OP07',
+  note:'פינאוט של 741. ברכיבים אחרים בחבילה הזו (למשל NE5534) פינים 1, 5 ו־8 משמשים לאיזון ולפיצוי תדר.',
+  pins:[{nm:'OFFSET NULL',x:mkTrim()},{nm:'IN−',x:mkIn(true)},{nm:'IN+',x:mkIn(false)},{nm:'V−',x:mkVn()},{nm:'OFFSET NULL',x:mkTrim()},{nm:'OUT',x:mkOut()},{nm:'V+',x:mkVp()},{nm:'NC',x:NC}]},
+ dual:{name:'DIP-8 · מגבר כפול',n:8,parts:'LM358 · TL082 · NE5532',
+  note:'שני מגברים בחבילה אחת, עם אספקה משותפת. אין פיני איזון. ב־LM358 פין 4 הוא בדרך כלל האדמה.',
+  pins:[{nm:'OUT A',x:mkOut('A')},{nm:'IN− A',x:mkIn(true,'A',true)},{nm:'IN+ A',x:mkIn(false,'A',true)},{nm:'V−/GND',x:mkVn('בחבילה כפולה האספקה משותפת לשני המגברים.')},{nm:'IN+ B',x:mkIn(false,'B',true)},{nm:'IN− B',x:mkIn(true,'B',true)},{nm:'OUT B',x:mkOut('B')},{nm:'V+',x:mkVp('בחבילה כפולה האספקה משותפת לשני המגברים.')}]},
+ quad:{name:'DIP-14 · מגבר מרובע',n:14,parts:'LM324 · TL084 · MC3403',
+  note:'ארבעה מגברים, אספקה באמצע השורות: V+ בפין 4 ו־V− בפין 11. ב־LM324 פין 11 הוא בדרך כלל האדמה.',
+  pins:[{nm:'OUT A',x:mkOut('A')},{nm:'IN− A',x:mkIn(true,'A',true)},{nm:'IN+ A',x:mkIn(false,'A',true)},{nm:'V+',x:mkVp('בחבילה מרובעת האספקה משותפת לארבעת המגברים.')},{nm:'IN+ B',x:mkIn(false,'B',true)},{nm:'IN− B',x:mkIn(true,'B',true)},{nm:'OUT B',x:mkOut('B')},
+   {nm:'OUT C',x:mkOut('C')},{nm:'IN− C',x:mkIn(true,'C',true)},{nm:'IN+ C',x:mkIn(false,'C',true)},{nm:'V−/GND',x:mkVn('בחבילה מרובעת האספקה משותפת לארבעת המגברים.')},{nm:'IN+ D',x:mkIn(false,'D',true)},{nm:'IN− D',x:mkIn(true,'D',true)},{nm:'OUT D',x:mkOut('D')}]}
+};
+var TAGS={in:['כניסה','var(--sig-in)'],out:['יציאה','var(--sig-out)'],pwr:['אספקה','var(--pwr)'],trim:['איזון היסט','var(--trim)'],nc:['לא מחובר','var(--nc)']};
+var curPkg='single',curPin=2;
+function symSVG(){
+  return '<svg class="sym" viewBox="0 0 200 150" aria-hidden="true"><polygon points="60,20 60,130 150,75"/>'+
+  '<g data-k="inv"><line x1="14" y1="45" x2="60" y2="45"/><text x="4" y="38">IN−</text></g>'+
+  '<g data-k="noninv"><line x1="14" y1="105" x2="60" y2="105"/><text x="4" y="125">IN+</text></g>'+
+  '<g data-k="out"><line x1="150" y1="75" x2="192" y2="75"/><text x="160" y="66">OUT</text></g>'+
+  '<g data-k="vp"><line x1="105" y1="47" x2="105" y2="8"/><text x="112" y="16">V+</text></g>'+
+  '<g data-k="vn"><line x1="105" y1="103" x2="105" y2="142"/><text x="112" y="140">V−</text></g></svg>';
+}
+function renderPin(){
+  var P=PKG[curPkg],p=P.pins[curPin-1],x=p.x,tg=TAGS[x.t];
+  $('#pinCard').innerHTML='<div class="pin-head"><span class="pn">'+curPin+'</span><div><div class="en">'+p.nm+'</div><div class="he">'+x.he+'</div></div><span class="tag" style="background:'+tg[1]+'">'+tg[0]+'</span></div>'+
+   '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1 1 220px;min-width:0"><p>'+x.d+'</p></div>'+symSVG()+'</div>'+
+   '<h4>מה מחברים</h4><p>'+x.c+'</p><h4>טעויות נפוצות</h4><p>'+x.m+'</p>';
+  $$('#pinCard [data-k]').forEach(function(g){g.classList.toggle('on',g.getAttribute('data-k')===x.s);});
+  $$('#chipBox .pin').forEach(function(g){g.classList.toggle('sel',+g.getAttribute('data-n')===curPin);});
+}
+function renderChip(){
+  var P=PKG[curPkg],n=P.n,half=n/2,pitch=n===8?50:42,y0=n===8?72:60,H=y0+pitch*(half-1)+50;
+  var bx=100,bw=160,top=34,bot=H-26,s='';
+  s+='<svg class="chip-svg" viewBox="0 0 360 '+H+'" role="group" aria-label="חבילת '+P.name+'">';
+  s+='<rect x="'+bx+'" y="'+top+'" width="'+bw+'" height="'+(bot-top)+'" rx="6" fill="var(--chip)" stroke="var(--ink)" stroke-width="1.5"/>';
+  s+='<path d="M'+(bx+bw/2-14)+' '+top+' a14 14 0 0 0 28 0" fill="var(--bg)" stroke="var(--ink)" stroke-width="1.5"/>';
+  s+='<circle cx="'+(bx+16)+'" cy="'+(top+20)+'" r="4" fill="none" stroke="#7E9488" stroke-width="1.5"/>';
+  for(var i=1;i<=n;i++){
+    var left=i<=half,row=left?i-1:n-i,y=y0+row*pitch,p=P.pins[i-1],col=TAGS[p.x.t][1];
+    var px=left?bx-42:bx+bw,tx=left?bx+8:bx+bw-8,anchor=left?'start':'end',nx=left?bx-50:bx+bw+50,nanc=left?'end':'start';
+    s+='<g class="pin" tabindex="0" role="button" data-n="'+i+'" aria-label="פין '+i+', '+p.nm+'">';
+    s+='<rect class="pb" x="'+px+'" y="'+(y-10)+'" width="42" height="20" rx="3" fill="'+col+'"/>';
+    s+='<text class="pnum" x="'+nx+'" y="'+(y+4)+'" text-anchor="'+nanc+'">'+i+'</text>';
+    s+='<text class="pname" x="'+tx+'" y="'+(y+4)+'" text-anchor="'+anchor+'">'+p.nm+'</text>';
+    s+='<rect x="'+(left?bx-60:bx)+'" y="'+(y-pitch/2+2)+'" width="'+(bw+60)+'" height="'+(pitch-4)+'" fill="transparent"/></g>';
+  }
+  s+='</svg>';
+  $('#chipBox').innerHTML=s;
+  $$('#chipBox .pin').forEach(function(g){
+    var n2=+g.getAttribute('data-n');
+    g.addEventListener('click',function(){curPin=n2;renderPin();});
+    g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();curPin=n2;renderPin();}});
+  });
+  $('#pkgNote').textContent=P.parts+'. '+P.note;
+  renderPin();
+}
+(function(){
+  var seg=$('#pkgSeg');
+  Object.keys(PKG).forEach(function(k){
+    var b=document.createElement('button');b.textContent=PKG[k].name;b.setAttribute('aria-pressed',k===curPkg?'true':'false');
+    b.addEventListener('click',function(){curPkg=k;curPin=Math.min(curPin,PKG[k].n);if(curPin<1)curPin=1;
+      $$('#pkgSeg button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});renderChip();});
+    seg.appendChild(b);
+  });
+  $('#pinLegend').innerHTML=Object.keys(TAGS).map(function(k){return '<span><i style="background:'+TAGS[k][1]+'"></i>'+TAGS[k][0]+'</span>';}).join('');
+  renderChip();
+})();
+
+/* ---------- input lab (Vd, Vcm) ---------- */
+function updateIn(){
+  var vp=parseFloat($('#vpIn').value)||0,vn=parseFloat($('#vnIn').value)||0,cm=parseFloat($('#cmrrIn').value);
+  var vd=vp-vn,vcm=(vp+vn)/2,A=2e5,Vsat=13.5,raw=A*vd,out=Math.max(-Vsat,Math.min(Vsat,raw)),sat=Math.abs(raw)>Vsat;
+  var err=vcm/Math.pow(10,cm/20);
+  $('#inReads').innerHTML='<div><small>Vd = V+ − V−</small><b>'+eng(vd,'V')+'</b></div><div><small>Vcm = (V+ + V−)/2</small><b>'+eng(vcm,'V')+'</b></div><div><small>יציאה בלולאה פתוחה</small><b>'+eng(out,'V')+'</b></div><div><small>שגיאה מ־Vcm (כשווה ערך להפרש)</small><b>'+eng(err,'V')+'</b></div>';
+  $('#vGauge').setAttribute('cx',(150+out/Vsat*135).toFixed(1));
+  $('#inFx').innerHTML=fxHTML('הנוסחאות עם הערכים שלך',[
+    ['Vd = V+ − V−',eng(vp,'V',8)+' − '+eng(vn,'V',8),eng(vd,'V')],
+    ['Vcm = (V+ + V−) / 2','('+eng(vp,'V',8)+' + '+eng(vn,'V',8)+') / 2',eng(vcm,'V',8)],
+    ['Vout = A · Vd','200,000 · '+eng(vd,'V')+(sat?' (קטום ל־±'+Vsat+' V)':''),eng(out,'V')],
+    ['Vd(ליניארי) &lt; Vsat / A',Vsat+' V / 200,000',eng(Vsat/A,'V')],
+    ['Verr = Vcm / 10^(CMRR/20)',eng(vcm,'V')+' / 10^('+cm+'/20)',eng(err,'V')]]);
+  $('#inNote').innerHTML=sat?'<span class="warnc">הרכיב רווי.</span> ב־A = 200,000 האזור הליניארי מוגבל ל־|Vd| קטן מ־'+eng(Vsat/A,'V')+'. כל הפרש גדול מזה דוחף את היציאה לפסגה, ולכן בלי היזון שלילי אי אפשר לעבוד כמגבר.':'<span class="ok">אזור ליניארי.</span> ההפרש כל כך קטן שהיציאה עדיין בתחום. המתח המשותף של '+eng(vcm,'V')+' נדחה ביחס CMRR, ומשאיר שגיאה של '+eng(err,'V')+' בלבד.';
+}
+['#vpIn','#vnIn','#cmrrIn'].forEach(function(s){$(s).addEventListener('input',updateIn);});
+$$('#vdPresets button').forEach(function(b){b.addEventListener('click',function(){var d=parseFloat(b.getAttribute('data-d'));var vn=parseFloat($('#vnIn').value)||0;$('#vpIn').value=+(vn+d).toPrecision(9);updateIn();});});
+updateIn();
+
+/* ---------- lab: schematics ---------- */
+function gnd(x,y){return '<path class="sw" d="M'+x+' '+y+' v8 M'+(x-9)+' '+(y+8)+' h18 M'+(x-6)+' '+(y+12)+' h12 M'+(x-3)+' '+(y+16)+' h6"/>';}
+function hres(x,y,w,l,f){return '<rect class="'+(f?'rbf':'rb')+'" x="'+x+'" y="'+(y-8)+'" width="'+w+'" height="16"/><text class="'+(f?'txf':'tx')+'" x="'+(x+w/2)+'" y="'+(y-13)+'" text-anchor="middle">'+l+'</text>';}
+function amp(){return '<polygon class="amp" points="210,40 210,160 320,100"/><text class="tx" x="218" y="75" font-size="16">−</text><text class="tx" x="218" y="136" font-size="16">+</text><text class="out" x="392" y="104">Vout</text><path class="sw" d="M320 100 H385"/>';}
+function vinT(y){return '<circle cx="20" cy="'+y+'" r="3.5" fill="none" stroke="var(--sig-in)" stroke-width="2"/><text class="in" x="8" y="'+(y-10)+'">Vin</text>';}
+var SCH={
+ inv:function(){return amp()+vinT(70)+'<path class="sw" d="M24 70 H60"/>'+hres(60,70,70,'Rin')+'<path class="sw" d="M130 70 H210"/>'+
+  '<path class="fbw" d="M168 70 V25 H205 M285 25 H350 V100"/>'+hres(205,25,80,'Rf',1)+'<circle class="dotf" cx="168" cy="70" r="3.5"/><circle class="dotf" cx="350" cy="100" r="3.5"/>'+
+  '<path class="sw" d="M210 130 H180 V150"/>'+gnd(180,150);},
+ noninv:function(){return amp()+vinT(130)+'<path class="sw" d="M24 130 H210"/>'+
+  '<path class="sw" d="M210 70 H140"/><path class="fbw" d="M140 70 V25 H205 M285 25 H350 V100"/>'+hres(205,25,80,'Rf',1)+
+  '<circle class="dotf" cx="140" cy="70" r="3.5"/><circle class="dotf" cx="350" cy="100" r="3.5"/>'+
+  '<path class="sw" d="M140 70 H120"/>'+hres(60,70,60,'Rg')+'<path class="sw" d="M60 70 H40 V90"/>'+gnd(40,90);},
+ follow:function(){return amp()+vinT(130)+'<path class="sw" d="M24 130 H210"/>'+
+  '<path class="fbw" d="M210 70 H160 V25 H350 V100"/><circle class="dotf" cx="350" cy="100" r="3.5"/>';},
+ comp:function(){return amp()+vinT(130)+'<path class="sw" d="M24 130 H210"/><path class="sw" d="M210 70 H180 V90"/>'+gnd(180,90);},
+ schmitt:function(){return amp()+vinT(130)+'<path class="sw" d="M24 130 H60"/>'+hres(60,130,60,'R1')+'<path class="sw" d="M120 130 H210"/>'+
+  '<path class="sw" d="M210 70 H180 V90"/>'+gnd(180,90)+
+  '<path class="fbw" d="M350 100 V200 H280 M200 200 H150 V130"/>'+hres(200,200,80,'Rf',1)+'<circle class="dotf" cx="350" cy="100" r="3.5"/><circle class="dotf" cx="150" cy="130" r="3.5"/>';}
+};
+var CAPS={
+ inv:'מהפך: ההיזון (סגול) חוזר לכניסה ההופכת, היזון שלילי. הכניסה הלא־הופכת באדמה.',
+ noninv:'לא־מהפך: האות נכנס ל־IN+, ומחלק המתח Rf/Rg מחזיר חלק מהיציאה ל־IN−. היזון שלילי.',
+ follow:'עוקב מתח: היציאה מחוברת ישירות ל־IN−. הגבר 1, עכבת כניסה גבוהה ועכבת יציאה נמוכה.',
+ comp:'משווה: אין היזון. ההגבר הפתוח מכריע לפי סימן ההפרש בלבד, והיציאה נתקעת באחת הפסגות.',
+ schmitt:'טריגר שמיט: ההיזון חוזר ל־IN+, כלומר היזון חיובי מכוון. היציאה מזיזה את סף ההחלטה, וכך נוצר היסטרזיס.'
+};
+var PRESET={
+ inv:{vp:1,dc:0,rin:10,rf:47,vs:15,nz:0},noninv:{vp:1,dc:0,rin:10,rf:47,vs:15,nz:0},follow:{vp:3,dc:0,rin:10,rf:47,vs:15,nz:0},
+ comp:{vp:3,dc:0,rin:10,rf:47,vs:15,nz:300},schmitt:{vp:3,dc:0,rin:10,rf:100,vs:15,nz:300}
+};
+var mode='inv',NZ=gaussArray(1200,7);
+function labVals(){return {vp:Math.abs(V('cVp')),dc:V('cDc'),rin:Math.max(V('cRin'),1e-3),rf:Math.max(V('cRf'),1e-3),vs:Math.max(V('cVs'),2),nz:Math.max(V('cNz'),0)};}
+function configLab(){
+  $('#schem').innerHTML=SCH[mode]();$('#schemCap').textContent=CAPS[mode];
+  $('#lRin').textContent=mode==='noninv'?'Rg (בקילו־אוהם)':(mode==='schmitt'?'R1 (בקילו־אוהם)':'Rin (בקילו־אוהם)');
+  $('#cRin').closest('.ctl').hidden=!(mode==='inv'||mode==='noninv'||mode==='schmitt');
+  $('#rowRf').hidden=!(mode==='inv'||mode==='noninv'||mode==='schmitt');
+}
+function setMode(m,apply){
+  mode=m;$$('#modeSeg button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-m')===m?'true':'false');});
+  if(apply){var p=PRESET[m];setPair('cVp',p.vp);setPair('cDc',p.dc);setPair('cRin',p.rin);setPair('cRf',p.rf);setPair('cVs',p.vs);setPair('cNz',p.nz);}
+  configLab();drawLab();
+}
+$$('#modeSeg button').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-m'),true);});});
+['#cVp','#cDc','#cRin','#cRf','#cVs','#cNz'].forEach(function(s){$(s).addEventListener('input',drawLab);});
+function drawLab(){
+  var v=labVals();
+  $('#oVp').textContent=v.vp.toFixed(1)+' V';$('#oDc').textContent=(v.dc>0?'+':'')+v.dc.toFixed(1)+' V';
+  $('#oRin').textContent=v.rin+' kΩ';$('#oRf').textContent=v.rf+' kΩ';$('#oVs').textContent='±'+v.vs+' V';$('#oNz').textContent=v.nz+' mV';
+  var Vsat=v.vs-1.5,N=1200,vin=new Float32Array(N),vo=new Float32Array(N),G,i;
+  function cl(x){return x>Vsat?Vsat:(x<-Vsat?-Vsat:x);}
+  for(i=0;i<N;i++){vin[i]=v.dc+v.vp*Math.sin(4*Math.PI*i/N)+v.nz/1000*NZ[i];}
+  var thr=0,trans=0;
+  if(mode==='inv'){G=-v.rf/v.rin;for(i=0;i<N;i++)vo[i]=cl(G*vin[i]);}
+  else if(mode==='noninv'){G=1+v.rf/v.rin;for(i=0;i<N;i++)vo[i]=cl(G*vin[i]);}
+  else if(mode==='follow'){G=1;for(i=0;i<N;i++)vo[i]=cl(vin[i]);}
+  else if(mode==='comp'){G=null;for(i=0;i<N;i++)vo[i]=vin[i]>0?Vsat:-Vsat;}
+  else{G=null;thr=Vsat*v.rin/v.rf;var o=-Vsat;for(i=0;i<N;i++){if(o<0&&vin[i]>thr)o=Vsat;else if(o>0&&vin[i]<-thr)o=-Vsat;vo[i]=o;}}
+  var maxO=0;for(i=0;i<N;i++){maxO=Math.max(maxO,Math.abs(vo[i]));if(i>0&&Math.sign(vo[i])!==Math.sign(vo[i-1]))trans++;}
+  var clipped=(mode==='inv'||mode==='noninv'||mode==='follow')&&Math.abs(G)*(v.vp+Math.abs(v.dc))>Vsat;
+  var reads='<div><small>הגבר (תיאורטי)</small><b>'+(G===null?(mode==='comp'?'A ≈ 200,000':'—'):(G>0?'+':'−')+Math.abs(G).toFixed(2).replace(/\.?0+$/,''))+'</b></div>'+
+    '<div><small>שיא יציאה</small><b>'+maxO.toFixed(2)+' V</b></div><div><small>גבול רוויה</small><b>±'+Vsat.toFixed(1)+' V</b></div>';
+  if(mode==='comp'||mode==='schmitt')reads+='<div><small>מעברי יציאה ב־2 מחזורים</small><b>'+trans+'</b></div>';
+  if(mode==='schmitt')reads+='<div><small>ספים ±Vsat·R1/Rf</small><b>±'+thr.toFixed(2)+' V</b></div>';
+  $('#labReads').innerHTML=reads;
+  var Rin=v.rin*1e3,Rf=v.rf*1e3,fxr=[['Vsat = Vs − 1.5 V',v.vs+' V − 1.5 V',nm(Vsat)+' V']];
+  if(mode==='inv'||mode==='noninv'){
+    fxr.push([mode==='inv'?'G = −Rf / Rin':'G = 1 + Rf / Rg',(mode==='inv'?'−':'1 + ')+eng(Rf,'Ω')+' / '+eng(Rin,'Ω'),nm(G)]);
+    fxr.push(['Vout,pk = G · Vin,pk',nm(G)+' · '+eng(v.vp,'V'),eng(G*v.vp,'V')+(Math.abs(G*v.vp)>Vsat?' → clipped to ±'+nm(Vsat)+' V':'')]);
+    if(v.dc!==0)fxr.push(['Vout,DC = G · Vdc',nm(G)+' · '+eng(v.dc,'V'),eng(G*v.dc,'V')]);
+    if(mode==='inv')fxr.push(['Zin = Rin','',eng(Rin,'Ω')]);
+  }else if(mode==='follow'){
+    fxr.push(['G = Vout / Vin','','1']);
+  }else if(mode==='comp'){
+    fxr.push(['|Vd| &lt; Vsat / A',nm(Vsat)+' V / 200,000',eng(Vsat/2e5,'V')]);
+    fxr.push(['Vout = +Vsat if V+ &gt; V−, else −Vsat',null,null]);
+  }else{
+    fxr.push(['Vth = ±Vsat · R1 / Rf','±'+nm(Vsat)+' V · '+eng(Rin,'Ω')+' / '+eng(Rf,'Ω'),'±'+eng(thr,'V')]);
+    fxr.push(['ΔVH = 2 · Vth','2 · '+eng(thr,'V'),eng(2*thr,'V')]);
+    fxr.push(['noise rms &lt; ΔVH / 6 ?',eng(v.nz/1000,'V')+' &lt; '+eng(2*thr/6,'V'),(v.nz/1000<2*thr/6?'yes: no false switching':'no: false switching possible')]);
+  }
+  $('#labFx').innerHTML=fxHTML('הנוסחאות עם הערכים שלך',fxr);
+  var t='';
+  if(mode==='inv')t='הגבר = −Rf/Rin. עכבת הכניסה של המעגל שווה ל־Rin, כי IN− הוא אדמה וירטואלית. '+(clipped?'<span class="warnc">היציאה נחתכת בפסגות: הקטן את הגבר או הגדל את האספקה.</span>':'<span class="ok">היציאה בתחום הליניארי.</span>');
+  else if(mode==='noninv')t='הגבר = 1 + Rf/Rg, תמיד 1 לפחות, באותה פאזה, ועכבת כניסה גבוהה מאוד. '+(clipped?'<span class="warnc">היציאה נחתכת בפסגות.</span>':'<span class="ok">היציאה בתחום הליניארי.</span>');
+  else if(mode==='follow')t='הגבר 1. שימושי כמאגר (buffer): מקור בעכבה גבוהה מניע עומס בעכבה נמוכה בלי להיטען.';
+  else if(mode==='comp')t='בלי היזון, ההכרעה נעשית כשההפרש גדול מ־'+eng(Vsat/2e5,'V')+'. עם רעש, היציאה קופצת הלוך ושוב סביב כל חצייה של האפס ('+trans+' מעברים במקום 4). זו תופעת ה־chatter.';
+  else t=(thr>v.vp+Math.abs(v.dc)?'<span class="warnc">הסף ('+thr.toFixed(2)+' V) גדול מהאות, ולכן היציאה לא מחליפה מצב.</span> ':'')+'ההיזון החיובי יוצר היסטרזיס: הסף עולה ל־'+thr.toFixed(2)+' V כשהיציאה נמוכה, ויורד ל־−'+thr.toFixed(2)+' V כשהיא גבוהה. רעש שקטן מרוחב ההיסטרזיס ('+(2*thr).toFixed(2)+' V) לא גורם להחלפת מצב, ולכן יש '+trans+' מעברים בלבד. השווה למשווה.';
+  $('#labNote').innerHTML=t;
+  drawScope(vin,vo,Vsat,mode==='schmitt'?thr:0);
+}
+function drawScope(vin,vo,Vsat,thr){
+  var c=$('#scope'),S=canvasSetup(c);if(!S)return;var x=S.x,w=S.w,h=S.h,N=vin.length;
+  var R=Math.max(Math.ceil(Vsat*1.15),Math.ceil(Math.max.apply(null,Array.prototype.map.call(vin,Math.abs))*1.05));
+  var L=34,Rr=8,Tp=12,Bt=22,pw=w-L-Rr,ph=h-Tp-Bt;
+  function X(i){return L+pw*i/(N-1);} function Y(v){return Tp+ph*(1-(v+R)/(2*R));}
+  x.clearRect(0,0,w,h);x.fillStyle='#0A1411';x.fillRect(0,0,w,h);
+  x.lineWidth=1;
+  for(var gi=0;gi<=10;gi++){x.strokeStyle=gi===5?SIG.gridC:SIG.grid;x.beginPath();x.moveTo(L+pw*gi/10,Tp);x.lineTo(L+pw*gi/10,Tp+ph);x.stroke();}
+  for(var gj=0;gj<=8;gj++){x.strokeStyle=gj===4?SIG.gridC:SIG.grid;x.beginPath();x.moveTo(L,Tp+ph*gj/8);x.lineTo(L+pw,Tp+ph*gj/8);x.stroke();}
+  x.setLineDash([5,5]);x.strokeStyle=SIG.rail;[Vsat,-Vsat].forEach(function(r){x.beginPath();x.moveTo(L,Y(r));x.lineTo(L+pw,Y(r));x.stroke();});
+  if(thr>0){x.strokeStyle=SIG.fb;[thr,-thr].forEach(function(r){x.beginPath();x.moveTo(L,Y(r));x.lineTo(L+pw,Y(r));x.stroke();});}
+  x.setLineDash([]);
+  x.fillStyle=SIG.txt;x.font='11px IBM Plex Mono, monospace';x.textAlign='right';
+  x.fillText('+'+R+' V',L-4,Tp+9);x.fillText('0',L-4,Y(0)+4);x.fillText('−'+R+' V',L-4,Tp+ph);
+  x.textAlign='left';x.fillText('0',L,h-6);x.textAlign='right';x.fillText('2 ms',L+pw,h-6);
+  function line(a,col,lw){x.strokeStyle=col;x.lineWidth=lw;x.beginPath();for(var i=0;i<N;i++){var px=X(i),py=Y(a[i]);if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke();}
+  line(vin,SIG.in,1.6);line(vo,SIG.out,2.2);
+  x.textAlign='left';x.fillStyle=SIG.in;x.fillText('Vin',L+8,Tp+14);x.fillStyle=SIG.out;x.fillText('Vout',L+44,Tp+14);
+  if(thr>0){x.fillStyle=SIG.fb;x.fillText('±Vth',L+96,Tp+14);}
+}
+onTab('lab',drawLab);watch($('#scope'),drawLab);
+setMode('inv',true);
+
+/* ---------- stability lab ---------- */
+function stParams(){function cl(x,a,b){x=isFinite(x)?x:a;return Math.max(a,Math.min(b,x));}
+  return {gbw:cl(parseFloat($('#sGbw').value),0.1,100)*1e6,G:cl(parseFloat($('#sG').value),1,1000),CL:cl(V('sCL'),0,1000)*1e-9,Riso:cl(V('sRiso'),0,1e5),Cf:cl(V('sCf'),0,1e4)*1e-12,Cin:cl(V('sCin'),0,1e4)*1e-12};}
+function pmVerdict(pm){
+  if(pm>=60)return ['<span class="ok">נקי ויציב</span>','שולי פאזה גבוהים: אין צלצול משמעותי.'];
+  if(pm>=45)return ['<span class="ok">יציב</span>','חריגה קלה, מתאים לרוב היישומים.'];
+  if(pm>=20)return ['<span class="warnc">מצלצל</span>','השולי נמוכים: חריגה גדולה וצלצול ארוך. שינוי קטן ברכיבים יכול להחמיר.'];
+  if(pm>=3)return ['<span class="badc">על סף תנודה</span>','כמעט אין שוליים: ההיזון השלילי כמעט חיובי בתדר הצלצול.'];
+  return ['<span class="badc">מתנודד</span>','בתדר הצלצול ההיזון כבר חיובי וההגבר שם גדול מ־1. היציאה מתנודדת עד הפסגות.'];
+}
+var stData=null;
+function drawSt(){
+  var P=stParams();
+  var r=stepResponse(P,1600);stData=r;var pm=r.an.pm,v=pmVerdict(pm);
+  var fin=r.y[r.y.length-1],mx=0,i;for(i=0;i<r.y.length;i++)mx=Math.max(mx,r.y[i]);
+  var os=r.V>0?Math.max(0,(mx-r.V)/r.V*100):0;
+  var osShow=os>300?'> 300%':os.toFixed(0)+'%';
+  $('#stReads').innerHTML='<div><small>תדר חציית הלולאה</small><b>'+eng(r.an.fc,'Hz')+'</b></div><div><small>שולי פאזה</small><b>'+(pm<-90?'< −90':pm.toFixed(0))+'°</b></div><div><small>חריגה בצעד</small><b>'+osShow+'</b></div><div><small>מצב</small><b style="font-family:var(--body);direction:rtl">'+v[0]+'</b></div>';
+  $('#stNote').innerHTML=v[1]+(P.Cin>0&&P.G>1&&P.Cf===0&&pm<60?' קיבול תועה בכניסה ההופכת עם נגדי היזון גדולים יוצר קוטב בלולאה: Cf מקביל ל־Rf מחזיר פאזה.':'')+(P.CL>0&&P.Riso===0&&pm<60?' העומס הקיבולי יוצר קוטב עם עכבת היציאה של הרכיב: נגד בידוד טורי יוצר אפס שמחזיר פאזה.':'');
+  var Rg=1e4,Rf=(P.G-1)*Rg,Rp=Rf>0?Rf*Rg/(Rf+Rg):0,fr=[];
+  fr.push(['f(cl) ≈ GBW / G',eng(P.gbw,'Hz')+' / '+nm(P.G),eng(P.gbw/P.G,'Hz')]);
+  fr.push(['Rf = (G − 1) · Rg','('+nm(P.G)+' − 1) · '+eng(Rg,'Ω'),eng(Rf,'Ω')]);
+  if(Rf>0&&P.Cf+P.Cin>0)fr.push(['fp(in−) = 1 / (2π · (Rf‖Rg) · (Cf + Cin))','1 / (2π · '+eng(Rp,'Ω')+' · '+eng(P.Cf+P.Cin,'F')+')',eng(1/(2*Math.PI*Rp*(P.Cf+P.Cin)),'Hz')]);
+  if(Rf>0&&P.Cf>0)fr.push(['fz(Cf) = 1 / (2π · Rf · Cf)','1 / (2π · '+eng(Rf,'Ω')+' · '+eng(P.Cf,'F')+')',eng(1/(2*Math.PI*Rf*P.Cf),'Hz')]);
+  if(P.CL>0)fr.push(['fp(CL) = 1 / (2π · (Ro + Riso) · CL)','1 / (2π · ('+75+' Ω + '+eng(P.Riso,'Ω')+') · '+eng(P.CL,'F')+')',eng(1/(2*Math.PI*(75+P.Riso)*P.CL),'Hz')]);
+  if(P.CL>0&&P.Riso>0)fr.push(['fz(Riso) = 1 / (2π · Riso · CL)','1 / (2π · '+eng(P.Riso,'Ω')+' · '+eng(P.CL,'F')+')',eng(1/(2*Math.PI*P.Riso*P.CL),'Hz')]);
+  if(Rf>0&&P.Cin>0)fr.push(['Cf(suggested) ≈ √(Cin / (2π · Rf · GBW))','√('+eng(P.Cin,'F')+' / (2π · '+eng(Rf,'Ω')+' · '+eng(P.gbw,'Hz')+'))',eng(Math.sqrt(P.Cin/(2*Math.PI*Rf*P.gbw)),'F')]);
+  fr.push(['PM = 180° + ∠L(fc)','fc = '+eng(r.an.fc,'Hz'),(pm<-90?'< −90':pm.toFixed(1))+'°']);
+  $('#stFx').innerHTML=fxHTML('הנוסחאות עם הערכים שלך',fr);
+  paintSt(r);
+}
+function paintSt(r){
+  var c=$('#stScope'),S=canvasSetup(c);if(!S||!r)return;var x=S.x,w=S.w,h=S.h,N=r.y.length;
+  var R=15,L=40,Rr=8,Tp=12,Bt=24,pw=w-L-Rr,ph=h-Tp-Bt;
+  function X(i){return L+pw*i/(N-1);} function Y(v){return Tp+ph*(1-(v+R)/(2*R));}
+  x.clearRect(0,0,w,h);x.fillStyle='#0A1411';x.fillRect(0,0,w,h);x.lineWidth=1;
+  for(var gi=0;gi<=10;gi++){x.strokeStyle=SIG.grid;x.beginPath();x.moveTo(L+pw*gi/10,Tp);x.lineTo(L+pw*gi/10,Tp+ph);x.stroke();}
+  for(var gj=0;gj<=6;gj++){x.strokeStyle=gj===3?SIG.gridC:SIG.grid;x.beginPath();x.moveTo(L,Tp+ph*gj/6);x.lineTo(L+pw,Tp+ph*gj/6);x.stroke();}
+  x.setLineDash([5,5]);x.strokeStyle=SIG.rail;[13.5,-13.5].forEach(function(q){x.beginPath();x.moveTo(L,Y(q));x.lineTo(L+pw,Y(q));x.stroke();});
+  x.strokeStyle=SIG.in;x.beginPath();x.moveTo(L,Y(r.V));x.lineTo(L+pw,Y(r.V));x.stroke();x.setLineDash([]);
+  x.fillStyle=SIG.txt;x.font='11px IBM Plex Mono, monospace';x.textAlign='right';
+  x.fillText('+13.5 V',L-4,Y(13.5)+4);x.fillText('0',L-4,Y(0)+4);x.fillText('−13.5 V',L-4,Y(-13.5)+4);
+  x.textAlign='left';x.fillText('0',L,h-7);x.textAlign='right';x.fillText(eng(r.T,'s'),L+pw,h-7);
+  x.strokeStyle=SIG.out;x.lineWidth=2;x.beginPath();for(var i=0;i<N;i++){var px=X(i),py=Y(r.y[i]);if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke();
+  x.textAlign='left';x.fillStyle=SIG.in;x.fillText('ideal '+r.V.toFixed(1)+' V',L+8,Tp+14);x.fillStyle=SIG.out;x.fillText('Vout',L+170,Tp+14);
+}
+['#sGbw','#sG','#sCL','#sRiso','#sCin','#sCf'].forEach(function(s){$(s).addEventListener('input',drawSt);});
+var STP={clean:{gbw:1,G:10,cl:0,riso:0,cin:2,cf:0},cable:{gbw:1,G:1,cl:5,riso:0,cin:2,cf:0},osc:{gbw:10,G:1,cl:10,riso:0,cin:2,cf:0},
+  cableFix:{gbw:10,G:1,cl:10,riso:100,cin:2,cf:0},stray:{gbw:10,G:5,cl:0,riso:0,cin:20,cf:0},strayFix:{gbw:10,G:5,cl:0,riso:0,cin:20,cf:3}};
+$$('#stPresets button').forEach(function(b){b.addEventListener('click',function(){var p=STP[b.getAttribute('data-s')];
+  $('#sGbw').value=p.gbw;$('#sG').value=p.G;setPair('sCL',p.cl);setPair('sRiso',p.riso);setPair('sCin',p.cin);setPair('sCf',p.cf);drawSt();});});
+onTab('positive',function(){drawSt();});watch($('#stScope'),function(){paintSt(stData);});
+
+/* ---------- fix table & noise tables ---------- */
+var FIX=[
+ ['חיבור הפוך של הכניסות','החלפה בין פין 2 לפין 3 (או בין A ל־B), כך שההיזון חוזר לכניסה הלא־הופכת. זה היזון חיובי מלא.','בדיקה מול הגיליון, סימון על ה־PCB. סימן אזהרה: היציאה נעולה בפסגה ואינה מגיבה לאות. מחזיקים את הרכיב עם החריץ למעלה ופין 1 משמאל.'],
+ ['קיבול תועה בכניסה ההופכת','כמה pF מול נגדי היזון גדולים יוצרים קוטב בלולאה, ואיתו איבוד פאזה בתדר הצלצול.','חיווט קצר, נגדי היזון קטנים, וקבל Cf מקביל ל־Rf. כלל אצבע: Cf ≈ √(Cin / (2π · Rf · GBW)).'],
+ ['עומס קיבולי (כבל, קבל גדול)','עכבת היציאה של הרכיב יחד עם CL יוצרת קוטב בתוך הלולאה.','נגד בידוד טורי של 10 עד 100 Ω ביציאה, כשההיזון נלקח לפניו. לפעמים גם Cf.'],
+ ['חוסר קבלי הפרדה','זרמי היציאה זורמים דרך עכבת חוטי האספקה וחוזרים לכניסות. הדחייה של האספקה (PSRR) יורדת בתדר גבוה, ובסביבות 1 MHz היא קרובה ל־0 dB.','קבל קרמי 100 nF צמוד לכל פין אספקה, ועוד 1 עד 10 µF לכל קבוצת רכיבים. באספקה כפולה קבל נפרד לכל פין.'],
+ ['צימוד בפריסה','מסלול כניסה רגיש עובר ליד היציאה או האספקה, וחלק מהאות חוזר בצימוד קיבולי או השראתי.','מסלולי כניסה קצרים ומרוחקים מהיציאה, טבעת שמירה (guard ring) סביב הכניסה ההופכת באותו פוטנציאל, מישור אדמה.'],
+ ['נתיב אדמה משותף','זרם העומס זורם בחלק מנתיב האדמה שהכניסה משתמשת בו, ומוסיף מתח לכניסה.','הארקת כוכב: נקודת ייחוס אחת, זרם העומס חוזר בנתיב נפרד.'],
+ ['היפוך פאזה ונעילה','כשמתח הכניסה יוצא מתחום Vcm (בעיקר ברכיבי JFET ישנים), היציאה קופצת לפסגה ההפוכה. ההיזון, שהיה שלילי, הופך חיובי והמעגל נשאר נעול.','נגד טורי של 1 עד 10 kΩ בכניסה, דיודות שוטקי להגבלה, ורכיב עם הגנה מהיפוך פאזה. אין לחרוג מ־Vcm.'],
+ ['מגבר שאינו בשימוש','הכניסות צפות, נסחפות לפסגה ומתנודדות. הרעש חודר לאספקה ומשפיע על המגבר השכן.','עוקב מתח: IN− ליציאה, IN+ למתח באמצע האספקה.'],
+ ['משווה בלי היסטרזיס','רעש סביב סף ההחלטה, יחד עם הגבר עצום וצימוד קטן לאספקה, גורמים לצ׳טר ולתנודה.','טריגר שמיט: היזון חיובי מכוון. או משווה ייעודי (LM393, LM311) עם היסטרזיס פנימי.'],
+ ['רכיב שאינו יציב בהגבר 1','רכיבים כמו NE5534 מפוצים לתדר מוגבל. בהגבר נמוך שולי הפאזה קטנים מדי.','קבל פיצוי חיצוני לפי גיליון הנתונים, או רכיב שמוגדר "unity-gain stable".']
+];
+$('#fixRows').innerHTML=FIX.map(function(r){return '<tr><td class="p" data-l="מקור">'+r[0]+'</td><td data-l="למה זה קורה">'+r[1]+'</td><td data-l="איך מונעים">'+r[2]+'</td></tr>';}).join('');
+var NOISE=[
+ ['רעש תרמי (ג׳ונסון)','כל נגד מייצר מתח אקראי: <code>vn = √(4·k·T·R·B)</code>. תלוי בגודל הנגד, בטמפרטורה וברוחב הפס.','נגדים קטנים, הגבלת רוחב פס, ולפעמים קירור. נגד של 10 kΩ ב־10 kHz: כ־1.3 µV rms.'],
+ ['רעש מתח של הרכיב (en)','מבוטא ב־nV/√Hz. טיפוסי: 3 עד 40 nV/√Hz. הוא מופיע בכניסה ומוגבר עם כל האות.','רכיב עם en נמוך (NE5534, OP27) כשהמקור בעכבה נמוכה.'],
+ ['רעש זרם של הרכיב (in)','מבוטא ב־pA/√Hz. הוא זורם דרך נגדי המקור וההיזון ויוצר מתח. חשוב כשהעכבות גבוהות.','רכיב JFET או CMOS (in זעיר) כשהמקור בעכבה גבוהה.'],
+ ['רעש 1/f (flicker)','גדל ככל שהתדר יורד. מתחת ל"פינת 1/f" (עשרות עד מאות הרץ) הוא הדומיננטי.','רכיבי chopper או zero-drift, או עבודה בתדר מעל הפינה.'],
+ ['רעש שוט (shot)','נובע מהזרימה הבדידה של נושאי מטען דרך צמתים: <code>in = √(2·q·I·B)</code>. בולט במקורות זרם כמו פוטו־דיודות.','זרם נמוך יותר או רוחב פס צר יותר.'],
+ ['רעש האספקה','האספקה לא נקייה: ריפל ממיר מתג, רעש ווסת. הדחייה (PSRR) יורדת בתדר גבוה, והרעש מגיע ליציאה.','קבלי הפרדה, מסנן RC או LC, ווסת לינארי נקי, אספקה נפרדת לחלק האנלוגי.'],
+ ['הפרעות חיצוניות (EMI/RFI)','זמזום 50 Hz מהרשת (230 V בישראל) והרמוניות שלו, משדרי רדיו, מתגים ומנועים. קליטה בכבלים ובמסלולי הכניסה.','מסנן RC בכניסה, מיגון, זוג שזור, כבל מסוכך המוארק בקצה אחד, וריחוק מנהלי חשמל.'],
+ ['לולאות אדמה','שתי נקודות אדמה בפוטנציאל שונה מעט, והפרש הזרם בין האדמות נכנס לכניסה.','הארקת כוכב, חיבור יחיד לאדמה, או כניסה דיפרנציאלית עם CMRR גבוה.'],
+ ['סיבות נוספות','צימוד בין ערוצים, תנודות מכניות בכבל (מיקרופוניקה), לכלוך ולחות ב־PCB שמוסיפים דליפה בכניסות עכבה גבוהה.','פריסה נקייה, ניקוי PCB מפלקס, טבעת שמירה, וקיבוע כבלים.']
+];
+$('#noiseRows').innerHTML=NOISE.map(function(r){return '<tr><td class="p" data-l="מקור">'+r[0]+'</td><td data-l="מה זה">'+r[1]+'</td><td data-l="איך מצמצמים">'+r[2]+'</td></tr>';}).join('');
+var TIPS=[
+ ['הגבל את רוחב הפס','רעש הוא בקירוב √B, ולכן חיתוך רוחב הפס לנחוץ בלבד חוסך הרבה. קבל Cf מקביל ל־Rf נותן קטבים, ו־fc = 1/(2π·Rf·Cf). צריך גם לזכור את הפקטור 1.57 מ־fc לרוחב הפס האפקטיבי.'],
+ ['בחר את הרכיב לפי Rs','כשהמקור בעכבה נמוכה ביחס ל־en/in (כמה מאות אוהם), en קובע, וצריך רכיב עם en נמוך. כשהעכבה גבוהה (עשרות kΩ ומעלה), in·Rs והרעש התרמי של Rs הם העיקר, ורכיב JFET עדיף. נסה במחשבון.'],
+ ['הקטן נגדים ברשת ההיזון','נגדי היזון גדולים מוסיפים רעש תרמי ורעש זרם. בהגבר גבוה אפשר להשתמש ב־Rg קטן, בתנאי שהמעגל מסוגל להניע את העומס.'],
+ ['הפרדת אספקה','קבל 100 nF צמוד לכל פין אספקה, 1 עד 10 µF בקרבת הרכיב, ולפעמים נגד טורי קטן או חרוז פריט לאספקה. מגברים רגישים מקבלים אספקה נפרדת מזו של מעגלים דיגיטליים.'],
+ ['הארקה נכונה','מישור אדמה אנלוגי נפרד, מחובר לאדמה הדיגיטלית בנקודה אחת. הארקת כוכב כשמדובר בכמה שלבים. זה מונע זרמי עומס מלזרום בנתיבי הייחוס של הכניסה.'],
+ ['מיגון וכבלים','זוג שזור מבטל שדות מגנטיים, וכבל מסוכך עם הסוכך מוארק בקצה אחד מבטל שדות חשמליים בלי ליצור לולאת אדמה. כבלים קצרים ככל האפשר.'],
+ ['סינון הפרעות רדיו','מסנן RC בכניסה: R טורי וקבל לאדמה, ובכניסה דיפרנציאלית קבל הפרשי גדול פי 10 לפחות מקבלי המשותף. כך הדיודות הפנימיות של הרכיב לא מיישרות את ההפרעה לתוך האות.'],
+ ['כניסה דיפרנציאלית','כשהמקור רחוק או על כבל ארוך משתמשים במגבר מכשור (instrumentation) או בכניסה דיפרנציאלית. רעש משותף לשני הקווים נדחה לפי CMRR.'],
+ ['טבעת שמירה (guard ring)','טבעת נחושת סביב הכניסה ההופכת, מחוברת לאותו פוטנציאל שלה, בולעת זרמי דליפה ומקטינה את הרעש בכניסות בעכבה גבוהה מאוד.'],
+ ['נגדי סרט מתכתי','בנגדים מסוג פחם יש רעש עודף על התרמי. סרט מתכתי שקט יותר וגם יציב יותר בטמפרטורה.'],
+ ['רכיב zero-drift','כשהאות איטי (DC) והרעש 1/f הוא הבעיה, רכיב chopper מעביר את העבודה לתדר גבוה ואז מסנן.'],
+ ['הפחתה ספרתית','כשהאות מודגם, ממוצע של N דגימות מקטין את הרעש הרנדומלי פי √N, בתנאי שהרעש בלתי תלוי.']
+];
+$('#noiseTips').innerHTML=TIPS.map(function(t,i){return '<details'+(i<2?' open':'')+'><summary>'+t[0]+'</summary><p>'+t[1]+'</p></details>';}).join('');
+
+/* ---------- noise calculator ---------- */
+function logVal(s,lo,hi){return Math.pow(10,lo+(hi-lo)*s/100);}
+var nzSeed=gaussArray(1200,19);
+function updateNoise(){
+  var chip={en:Math.max(parseFloat($('#nEn').value)||0,0),inn:Math.max(parseFloat($('#nIn').value)||0,0)};
+  var Rs=Math.max(V('nRs'),0),Rg=Math.max(V('nRg'),1),B=Math.max(V('nB'),0.01);
+  var G=Math.max(parseFloat($('#nG').value)||1,1),sig=(parseFloat($('#nSig').value)||0.01)/1000;
+  $('#oRs').textContent=eng(Rs,'Ω');$('#oRg').textContent=eng(Rg,'Ω')+(G>1?' · Rf = '+eng(Rg*(G-1),'Ω'):'');$('#oB').textContent=eng(B,'Hz');
+  var r=noiseCalc({en:chip.en,inn:chip.inn,Rs:Rs,Rg:Rg,G:G,B:B,sig:sig});
+  var Cf=G>1?1/(2*Math.PI*r.Rf*(B/1.57)):null;
+  $('#nReads').innerHTML='<div><small>צפיפות רעש בכניסה</small><b>'+(+(r.tot*1e9).toPrecision(3))+' nV/√Hz</b></div>'+
+    '<div><small>רעש בכניסה (rms)</small><b>'+eng(r.inRms,'V')+'</b></div><div><small>רעש ביציאה (rms)</small><b>'+eng(r.outRms,'V')+'</b></div><div><small>רעש ביציאה, שיא־לשיא</small><b>'+eng(r.outPP,'V')+'</b></div><div><small>יחס אות לרעש</small><b>'+(isFinite(r.snr)?r.snr.toFixed(1)+' dB':'∞')+'</b></div>'+(Cf?'<div><small>Cf לרוחב הפס הזה</small><b>'+eng(Cf,'F')+'</b></div>':'');
+  var labels=[['רעש מתח של הרכיב (en)',r.c.en],['רעש זרם · IN+ (in·Rs)',r.c.inRs],['רעש תרמי של Rs',r.c.tRs],['רעש תרמי של Rf‖Rg',r.c.tRp],['רעש זרם · IN− (in·Rf‖Rg)',r.c.inRp]];
+  var best=0,bi=0;labels.forEach(function(l,i){var s=l[1]*l[1];if(s>best){best=s;bi=i;}});
+  $('#nBars').innerHTML=labels.map(function(l){var pc=100*l[1]*l[1]/r.sq;return '<div class="bar"><span>'+l[0]+'</span><span class="tr"><span class="fi" style="display:block;width:'+pc.toFixed(1)+'%"></span></span><span>'+pc.toFixed(0)+'%</span></div>';}).join('');
+  var adv='';
+  if(bi===0)adv='הדומיננטי הוא רעש המתח של הרכיב. כדי להקטין: רכיב עם en נמוך יותר (למשל NE5534) או רוחב פס צר יותר.';
+  else if(bi===1||bi===4)adv='הדומיננטי הוא רעש הזרם. כדי להקטין: רכיב JFET או CMOS עם in זעיר, או נגדים קטנים יותר.';
+  else adv='הדומיננטי הוא הרעש התרמי של הנגדים. כדי להקטין: נגדים קטנים יותר או רוחב פס צר יותר. החלפת הרכיב לא תעזור הרבה.';
+  $('#nNote').innerHTML='<b>'+labels[bi][0]+'</b>. '+adv;
+  var nv=function(x){return nm(x*1e9)+' nV/√Hz';},sqn=function(x){return nm(x*x*1e18)+' nV²';};
+  var fr=[
+    ['Rf = (G − 1) · Rg','('+nm(G)+' − 1) · '+eng(Rg,'Ω'),eng(r.Rf,'Ω')],
+    ['Rp = Rf‖Rg',eng(r.Rf,'Ω')+' ‖ '+eng(Rg,'Ω'),eng(r.Rp,'Ω')],
+    ['vn(Rs) = √(4 · k · T · Rs)','√(4 · 1.38e-23 · 300 · '+eng(Rs,'Ω')+')',nv(r.c.tRs)],
+    ['vn(Rp) = √(4 · k · T · Rp)','√(4 · 1.38e-23 · 300 · '+eng(r.Rp,'Ω')+')',nv(r.c.tRp)],
+    ['in · Rs',nm(chip.inn)+' pA/√Hz · '+eng(Rs,'Ω'),nv(r.c.inRs)],
+    ['in · Rp',nm(chip.inn)+' pA/√Hz · '+eng(r.Rp,'Ω'),nv(r.c.inRp)],
+    ['en,tot = √(en² + (in·Rs)² + vn(Rs)² + vn(Rp)² + (in·Rp)²)','√('+[sqn(r.c.en),sqn(r.c.inRs),sqn(r.c.tRs),sqn(r.c.tRp),sqn(r.c.inRp)].join(' + ')+')',nv(r.tot)],
+    ['Vn,in = en,tot · √B',nv(r.tot)+' · √'+eng(B,'Hz'),eng(r.inRms,'V')+' rms'],
+    ['Vn,out = G · Vn,in',nm(G)+' · '+eng(r.inRms,'V'),eng(r.outRms,'V')+' rms'],
+    ['Vn,pp ≈ 6.6 · Vn,out','6.6 · '+eng(r.outRms,'V'),eng(r.outPP,'V')],
+    ['SNR = 20 · log10(Vsig / Vn,in)','20 · log10('+eng(sig,'V')+' / '+eng(r.inRms,'V')+')',(isFinite(r.snr)?r.snr.toFixed(1)+' dB':'∞')]];
+  if(Cf)fr.push(['Cf = 1 / (2π · Rf · fc),  fc = B / 1.57','1 / (2π · '+eng(r.Rf,'Ω')+' · '+eng(B/1.57,'Hz')+')',eng(Cf,'F')]);
+  $('#nFx').innerHTML=fxHTML('הנוסחאות עם הערכים שלך (T = 300 K)',fr);
+  drawNoise(r,sig*G);
+}
+function drawNoise(r,sigOut){
+  var c=$('#nScope'),S=canvasSetup(c);if(!S)return;var x=S.x,w=S.w,h=S.h,N=nzSeed.length;
+  x.clearRect(0,0,w,h);x.fillStyle='#0A1411';x.fillRect(0,0,w,h);
+  var L=10,pw=w-L-8,mid=h/2;x.lineWidth=1;
+  for(var gi=0;gi<=10;gi++){x.strokeStyle=SIG.grid;x.beginPath();x.moveTo(L+pw*gi/10,6);x.lineTo(L+pw*gi/10,h-6);x.stroke();}
+  for(var gj=0;gj<=6;gj++){x.strokeStyle=gj===3?SIG.gridC:SIG.grid;x.beginPath();x.moveTo(L,6+(h-12)*gj/6);x.lineTo(L+pw,6+(h-12)*gj/6);x.stroke();}
+  var amp=Math.max(sigOut*Math.SQRT2,r.outPP/2,1e-12)*1.15;
+  function Y(v){return mid-(h/2-10)*v/amp;}
+  x.strokeStyle=SIG.in;x.lineWidth=1.4;x.setLineDash([5,5]);x.beginPath();for(var i=0;i<N;i++){var px=L+pw*i/(N-1),py=Y(sigOut*Math.SQRT2*Math.sin(6*Math.PI*i/N));if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke();x.setLineDash([]);
+  x.strokeStyle=SIG.out;x.lineWidth=1.6;x.beginPath();for(var j=0;j<N;j++){var qx=L+pw*j/(N-1),qy=Y(sigOut*Math.SQRT2*Math.sin(6*Math.PI*j/N)+nzSeed[j]*r.outRms);if(j)x.lineTo(qx,qy);else x.moveTo(qx,qy);}x.stroke();
+  x.font='11px IBM Plex Mono, monospace';x.textAlign='left';x.fillStyle=SIG.in;x.fillText('signal',L+8,18);x.fillStyle=SIG.out;x.fillText('signal + noise',L+64,18);
+  x.fillStyle=SIG.txt;x.textAlign='right';x.fillText('half screen = '+eng(amp,'V'),L+pw,h-10);
+}
+$('#nChip').addEventListener('input',function(){var c=CHIPS[$('#nChip').value];$('#nEn').value=c.en;$('#nIn').value=c.inn;updateNoise();});
+$('#nChip').dispatchEvent(new Event('input'));
+['#nEn','#nIn','#nRs','#nG','#nRg','#nB','#nSig'].forEach(function(s){$(s).addEventListener('input',updateNoise);});
+onTab('noise',updateNoise);watch($('#nScope'),updateNoise);updateNoise();
+
+/* ---------- glossary ---------- */
+var GL=[
+ ['מגבר שרת','Operational Amplifier, op-amp','מגבר מתח דיפרנציאלי בעל הגבר גבוה מאוד, שמתאים לבניית מעגלים אנלוגיים על ידי רשתות היזון חיצוניות.'],
+ ['כניסה דיפרנציאלית','Differential input','זוג כניסות שהמגבר מגיב להפרש ביניהן בלבד.'],
+ ['מתח משותף','Common-mode voltage, Vcm','הממוצע של שתי הכניסות. מגבר טוב מתעלם ממנו.'],
+ ['CMRR','Common-Mode Rejection Ratio','יחס בין ההגבר ההפרשי להגבר המתח המשותף, בדציבלים. גבוה יותר זה טוב יותר.'],
+ ['PSRR','Power Supply Rejection Ratio','כמה הרכיב דוחה רעש וריפל שמגיעים מהאספקה. יורד בתדר גבוה.'],
+ ['הגבר בלולאה פתוחה','Open-loop gain, A','ההגבר של הרכיב בלי היזון. מאה אלף ומעלה בתדרים נמוכים.'],
+ ['מכפלת הגבר ברוחב פס','Gain-Bandwidth Product, GBW','ההגבר כפול רוחב הפס קבוע בערך. הגבר 10 ב־1 MHz GBW נותן רוחב פס של כ־100 kHz.'],
+ ['קצב שינוי','Slew rate','הקצב המרבי של שינוי מתח היציאה, ב־V/µs. אות גדול ומהיר יכול להתעוות גם כשרוחב הפס מספיק.'],
+ ['קצר וירטואלי','Virtual short','תוצאה של היזון שלילי: V+ ≈ V−. כשהכניסה הלא־הופכת באדמה, הכניסה ההופכת נקראת אדמה וירטואלית.'],
+ ['זרם הטיה','Input bias current, Ib','הזרם הקטן שנכנס לכניסות. חייב נתיב DC.'],
+ ['מתח היסט','Input offset voltage, Vos','מתח הפרש קטן שצריך להפעיל בכניסה כדי שהיציאה תהיה אפס.'],
+ ['איזון היסט','Offset null','כוונון Vos באמצעות פוטנציומטר בפיני האיזון של הרכיב.'],
+ ['עכבת כניסה','Input impedance, Zin','כמה הכניסה מעמיסה על המקור. גבוה זה טוב.'],
+ ['עכבת יציאה','Output impedance, Zout','עכבת המקור שרואה העומס. נמוך זה טוב.'],
+ ['רוויה','Saturation','מצב שבו היציאה נתקעת בפסגת האספקה כי ההפרש בכניסה גדול מדי.'],
+ ['Rail-to-rail','Rail-to-rail','רכיב שהכניסות או היציאה שלו מגיעות כמעט עד פסגות האספקה.'],
+ ['אספקה כפולה ויחידה','Dual / single supply','כפולה: V+ ו־V− סביב האדמה. יחידה: V+ ואדמה. ביחידה צריך ייחוס באמצע האספקה.'],
+ ['שולי פאזה','Phase margin','כמה מעלות חסרות לפני שההיזון נעשה חיובי בתדר שבו הגבר הלולאה הוא 1. מדד היציבות.'],
+ ['קריטריון בארקהאוזן','Barkhausen criterion','תנאי לתנודה: הגבר הלולאה ≥ 1 ופאזה מלאה של 360° סביבה.'],
+ ['קוטב דומיננטי','Dominant pole','הקוטב הנמוך ביותר ברכיב. קובע את ירידת ההגבר ב־20 dB לעשור.'],
+ ['יציב בהגבר 1','Unity-gain stable','רכיב שמפוצה כך שהוא לא מתנודד גם בהגבר 1.'],
+ ['היפוך פאזה','Phase reversal','כשהכניסה יוצאת מתחום Vcm, היציאה קופצת לפסגה ההפוכה.'],
+ ['נעילה','Latch-up','מצב שבו הרכיב נתקע ודורש כיבוי. נגרם בדרך כלל ממתח כניסה מעל האספקה.'],
+ ['קבל הפרדה','Decoupling / bypass capacitor','קבל קרמי (בדרך כלל 100 nF) בין פין אספקה לאדמה, צמוד לרכיב. מספק זרמי תדר גבוה ובולע רעש.'],
+ ['היסטרזיס','Hysteresis','שני ספי החלטה שונים לעלייה ולירידה, שמונעים החלפת מצב חוזרת מרעש.'],
+ ['טריגר שמיט','Schmitt trigger','משווה עם היזון חיובי מכוון שיוצר היסטרזיס.'],
+ ['צ׳טר','Chatter','קפיצות חוזרות של היציאה סביב סף ההחלטה, בגלל רעש.'],
+ ['רעש תרמי','Johnson noise','רעש אקראי בכל נגד: √(4kTRB).'],
+ ['רעש 1/f','Flicker noise','רעש שגדל כשהתדר יורד. קיים בכל רכיב אקטיבי.'],
+ ['רעש שוט','Shot noise','רעש מזרימה בדידה של נושאי מטען דרך צומת.'],
+ ['צפיפות רעש','Noise density','הרעש ליחידת רוחב פס, ביחידות V/√Hz או A/√Hz. הרעש הכולל מתקבל על ידי הכפלה ב־√B.'],
+ ['רוחב פס רעש','Noise bandwidth','רוחב הפס שבו הרעש נספר. במסנן ממעלה ראשונה הוא 1.57 פעמים תדר החיתוך.'],
+ ['יחס אות לרעש','Signal-to-noise ratio, SNR','היחס בין עוצמת האות לעוצמת הרעש, בדציבלים.'],
+ ['EMI / RFI','Electromagnetic / radio-frequency interference','הפרעות מבחוץ: רשת, משדרים, מתגים.'],
+ ['לולאת אדמה','Ground loop','זרם בין שתי נקודות אדמה בפוטנציאל שונה שמוסיף מתח לכניסה.'],
+ ['הארקת כוכב','Star ground','כל נקודות האדמה נפגשות בנקודה אחת, כדי שזרמי עומס לא יזרמו בנתיבי הייחוס.'],
+ ['טבעת שמירה','Guard ring','טבעת נחושת סביב כניסה בעכבה גבוהה, באותו פוטנציאל, שבולעת דליפות.'],
+ ['DIP','Dual In-line Package','חבילה עם שתי שורות פינים במרחק 2.54 מ״מ. חריץ או נקודה מסמנים את פין 1.'],
+ ['NC','No Connect','פין שאין בו חיבור פנימי שימושי.'],
+ ['מגבר מכשור','Instrumentation amplifier','מגבר דיפרנציאלי מדויק שבנוי משלושה מגברי שרת, עם CMRR גבוה ועכבת כניסה גבוהה.']
+];
+function renderGl(q){
+  q=(q||'').trim().toLowerCase();
+  var rows=GL.filter(function(g){return !q||(g[0]+' '+g[1]+' '+g[2]).toLowerCase().indexOf(q)>=0;});
+  $('#glList').innerHTML=rows.length?rows.map(function(g){return '<dt>'+g[0]+'<small>'+g[1]+'</small></dt><dd>'+g[2]+'</dd>';}).join(''):'<dt>לא נמצא מושג</dt><dd>נסה מילה אחרת.</dd>';
+}
+$('#gSearch').addEventListener('input',function(e){renderGl(e.target.value);});renderGl('');
+
+/* ---------- start ---------- */
+var h=(location.hash||'').replace('#','');show(TABS.indexOf(h)>=0?h:'ideal',false);
+window.addEventListener('hashchange',function(){var x=(location.hash||'').replace('#','');if(TABS.indexOf(x)>=0)show(x,false);});
+})();
+</script>
+
+</body></html>
